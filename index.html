@@ -1,571 +1,951 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-
-// Default avatar images (using placeholder URLs - replace with actual avatar images)
-const DEFAULT_AVATARS = [
-  {
-    id: 1,
-    name: "Female 1",
-    type: "female",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felicity&backgroundColor=b6e3f4&radius=50",
-    thumbnail: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felicity&backgroundColor=b6e3f4&radius=50&size=100"
-  },
-  {
-    id: 2,
-    name: "Female 2",
-    type: "female", 
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=d1d4f9&radius=50",
-    thumbnail: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=d1d4f9&radius=50&size=100"
-  },
-  {
-    id: 3,
-    name: "Male 1",
-    type: "male",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rafael&backgroundColor=ffdfd3&radius=50",
-    thumbnail: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rafael&backgroundColor=ffdfd3&radius=50&size=100"
-  },
-  {
-    id: 4,
-    name: "Male 2", 
-    type: "male",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jamie&backgroundColor=c0aede&radius=50",
-    thumbnail: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jamie&backgroundColor=c0aede&radius=50&size=100"
-  }
-];
-
-// Sample greetings data
-const GREETINGS_DATA = [
-  { id: 1, name: "Good Morning", proverb: "Early bird catches the worm. Rise and shine!" },
-  { id: 2, name: "Good Afternoon", proverb: "Afternoon delight makes the day bright." },
-  { id: 3, name: "Good Evening", proverb: "Evening calm brings inner balm." },
-  { id: 4, name: "Good Night", proverb: "Sleep well, dream well, all is well." },
-  { id: 5, name: "Hello", proverb: "A warm hello opens every door." },
-  { id: 6, name: "Welcome", proverb: "Welcome hearts find welcome hands." },
-  { id: 7, name: "Namaste", proverb: "The divine in me bows to the divine in you." },
-  { id: 8, name: "Peace", proverb: "Peace begins with a smile." }
-];
-
-// Lip sync animation frames
-const LIP_SYNC_FRAMES = [
-  { mouth: "closed", duration: 0 },
-  { mouth: "open", duration: 100 },
-  { mouth: "wide", duration: 200 },
-  { mouth: "open", duration: 100 },
-  { mouth: "closed", duration: 50 }
-];
-
-const GreetingsApp = () => {
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
-  const [customAvatar, setCustomAvatar] = useState(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [currentText, setCurrentText] = useState("");
-  const [highlightedText, setHighlightedText] = useState("");
-  const [currentGreetingIndex, setCurrentGreetingIndex] = useState(0);
-  const [lipSyncState, setLipSyncState] = useState("closed");
-  const [showGreetingsList, setShowGreetingsList] = useState(true);
-  const [avatarMode, setAvatarMode] = useState("default"); // 'default' or 'custom'
-  
-  const utteranceRef = useRef(null);
-  const speechSynthesisRef = useRef(window.speechSynthesis || null);
-  const animationFrameRef = useRef(null);
-  const startTimeRef = useRef(0);
-  const wordBoundaryRef = useRef([]);
-  const currentWordIndexRef = useRef(0);
-
-  // Initialize speech synthesis
-  useEffect(() => {
-    speechSynthesisRef.current = window.speechSynthesis;
-    
-    // Set default avatar
-    if (!selectedAvatar && DEFAULT_AVATARS.length > 0) {
-      setSelectedAvatar(DEFAULT_AVATARS[0]);
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speaking Greetings App</title>
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     }
     
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+      padding: 1.5rem;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+      color: #64748b;
+      margin: 0;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 1rem;
+    }
+    
+    /* Avatar Selection */
+    .avatar-grid {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .avatar-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      background: #f8fafc;
+    }
+    
+    .avatar-btn:hover {
+      background: #f1f5f9;
+    }
+    
+    .avatar-btn.selected {
+      background: #dbeafe;
+      border: 2px solid #3b82f6;
+    }
+    
+    .avatar-thumb {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 0.5rem;
+    }
+    
+    .avatar-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #475569;
+    }
+    
+    /* Upload Area */
+    .upload-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      border: 2px dashed #cbd5e1;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      background: #f8fafc;
+    }
+    
+    .upload-area:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    
+    .upload-area.active {
+      background: #eff6ff;
+      border-color: #3b82f6;
+    }
+    
+    .upload-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .upload-icon img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .upload-text {
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+    
+    /* Main Avatar */
+    .main-avatar-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .main-avatar-wrapper {
+      position: relative;
+      width: 18.75rem;
+      height: 18.75rem;
+      border-radius: 50%;
+      overflow: hidden;
+      transition: all 0.2s;
+      border: 3px solid #e2e8f0;
+      box-shadow: 0 0 0.625rem rgba(0,0,0,0.1);
+    }
+    
+    .main-avatar-wrapper.speaking {
+      border-color: #3b82f6;
+      box-shadow: 0 0 1.25rem rgba(59, 130, 246, 0.5);
+    }
+    
+    .main-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* Lip Sync */
+    .lip-sync {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 0;
+      background: linear-gradient(to top, rgba(239, 68, 68, 0.8), transparent);
+      border-radius: 50%;
+      transition: all 0.1s;
+    }
+    
+    .lip-sync.open {
+      height: 1.875rem;
+      width: 80%;
+    }
+    
+    .lip-sync.wide {
+      height: 2.5rem;
+      width: 100%;
+    }
+    
+    /* Speaking Indicator */
+    .speaking-indicator {
+      position: absolute;
+      top: -0.5rem;
+      right: -0.5rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      background: #3b82f6;
+      border-radius: 50%;
+      display: none;
+    }
+    
+    .speaking-indicator.show {
+      display: block;
+    }
+    
+    .speaking-indicator::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: ping 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes ping {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.6;
       }
-      if (utteranceRef.current) {
-        speechSynthesisRef.current?.cancel();
+      50% {
+        transform: scale(1.2);
+        opacity: 0;
       }
-    };
-  }, []);
+    }
+    
+    /* Text Display */
+    .text-display-card {
+      max-width: 36rem;
+      margin: 0 auto 1.5rem;
+    }
+    
+    .status-text {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+    }
+    
+    .text-content {
+      font-size: 1.25rem;
+      line-height: 1.75;
+      color: #1e293b;
+      min-height: 7.5rem;
+    }
+    
+    .word {
+      transition: all 0.2s;
+    }
+    
+    .word.highlight {
+      background-color: #dbeafe;
+      color: #1e40af;
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+    
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    
+    .btn:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+    }
+    
+    /* Greetings List */
+    .greetings-card {
+      max-height: 16rem;
+      overflow-y: auto;
+    }
+    
+    .greetings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    
+    .greeting-btn {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+      border: none;
+      background: #f8fafc;
+      cursor: pointer;
+    }
+    
+    .greeting-btn:hover {
+      background: #f1f5f9;
+    }
+    
+    .greeting-btn.selected {
+      background: #dbeafe;
+      border: 2px solid #3b82f6;
+    }
+    
+    .greeting-name {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+    }
+    
+    .greeting-proverb {
+      font-size: 0.875rem;
+      color: #64748b;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    /* Scrollbar */
+    .greetings-card::-webkit-scrollbar {
+      width: 0.375rem;
+    }
+    
+    .greetings-card::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 0.1875rem;
+    }
+    
+    .greetings-card::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 0.1875rem;
+    }
+    
+    .greetings-card::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+    
+    /* Instructions */
+    .instructions {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #94a3b8;
+      margin-top: 2rem;
+    }
+    
+    .instructions p {
+      margin: 0.25rem 0;
+    }
+    
+    /* Utility classes */
+    .hidden {
+      display: none !important;
+    }
+    
+    .flex {
+      display: flex;
+    }
+    
+    .items-center {
+      align-items: center;
+    }
+    
+    .justify-center {
+      justify-content: center;
+    }
+    
+    .gap-2 {
+      gap: 0.5rem;
+    }
+    
+    .gap-4 {
+      gap: 1rem;
+    }
+    
+    /* SVG Icons */
+    .icon {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <h1>🎤 Speaking Greetings App</h1>
+      <p class="subtitle">Choose an avatar and let it speak your greetings!</p>
+    </header>
 
-  // Handle avatar selection
-  const handleAvatarSelect = (avatar) => {
-    setSelectedAvatar(avatar);
-    setAvatarMode("default");
-    setCustomAvatar(null);
-  };
+    <!-- Avatar Selection -->
+    <div class="card">
+      <h2 class="section-title">Select Avatar</h2>
+      <div class="avatar-grid" id="avatar-selection">
+        <!-- Avatars inserted by JS -->
+      </div>
+      
+      <!-- Custom avatar upload -->
+      <div class="upload-area" id="custom-upload">
+        <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
+        <div class="upload-icon" id="upload-icon">
+          <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+          </svg>
+        </div>
+        <span class="upload-text" id="upload-text">Upload Your Photo</span>
+      </div>
+    </div>
 
-  // Handle custom avatar upload
-  const onDrop = useCallback((acceptedFiles) => {
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
+    <!-- Main Avatar Display -->
+    <div class="main-avatar-container">
+      <div class="main-avatar-wrapper" id="main-avatar">
+        <img id="avatar-image" class="main-avatar-img" src="" alt="Avatar" />
+        <div class="lip-sync" id="lip-sync"></div>
+        <div class="speaking-indicator" id="speaking-indicator"></div>
+      </div>
+    </div>
+
+    <!-- Text Display -->
+    <div class="card text-display-card">
+      <div class="status-text" id="speech-status">Ready to speak</div>
+      <div class="text-content" id="text-display">
+        Select a greeting to begin
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button id="stop-btn" class="btn btn-danger hidden">
+        <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        Stop
+      </button>
+      <button id="speak-btn" class="btn btn-primary">
+        <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.388 4.388a1 1 0 011.22.002l4.258 4.258a1 1 0 010 1.414l-4.258 4.258a1 1 0 01-1.414-1.414L12.172 11H3a1 1 0 01-1-1v-2a1 1 0 011-1h9.172l-2.788-2.788a1 1 0 01.002-1.22z" clip-rule="evenodd" />
+        </svg>
+        Speak Greeting
+      </button>
+    </div>
+
+    <!-- Greetings List -->
+    <div class="card greetings-card">
+      <h2 class="section-title">Select Greeting</h2>
+      <div class="greetings-grid" id="greetings-list">
+        <!-- Greetings inserted by JS -->
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <p>💡 Tip: Text will be highlighted in blue and appear larger while the avatar is speaking</p>
+      <p>🎭 Select from 4 default avatars or upload your own photo</p>
+      <p>🔊 The avatar's lips will sync with the speech</p>
+    </div>
+  </div>
+
+  <script>
+    // Default avatar images - using data URIs to avoid CSP issues
+    const DEFAULT_AVATARS = [
+      {
+        id: 1,
+        name: "Female 1",
+        type: "female",
+        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+      },
+      {
+        id: 2,
+        name: "Female 2",
+        type: "female", 
+        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+      },
+      {
+        id: 3,
+        name: "Male 1",
+        type: "male",
+        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+      },
+      {
+        id: 4,
+        name: "Male 2", 
+        type: "male",
+        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+      }
+    ];
+
+    // Sample greetings data
+    const GREETINGS_DATA = [
+      { id: 1, name: "Good Morning", proverb: "Early bird catches the worm. Rise and shine!" },
+      { id: 2, name: "Good Afternoon", proverb: "Afternoon delight makes the day bright." },
+      { id: 3, name: "Good Evening", proverb: "Evening calm brings inner balm." },
+      { id: 4, name: "Good Night", proverb: "Sleep well, dream well, all is well." },
+      { id: 5, name: "Hello", proverb: "A warm hello opens every door." },
+      { id: 6, name: "Welcome", proverb: "Welcome hearts find welcome hands." },
+      { id: 7, name: "Namaste", proverb: "The divine in me bows to the divine in you." },
+      { id: 8, name: "Peace", proverb: "Peace begins with a smile." }
+    ];
+
+    // State variables
+    let selectedAvatar = null;
+    let customAvatar = null;
+    let isSpeaking = false;
+    let currentText = "";
+    let highlightedText = "";
+    let currentGreetingIndex = 0;
+    let lipSyncState = "closed";
+    let avatarMode = "default";
+    
+    let utterance = null;
+    let animationFrame = null;
+    let startTime = 0;
+    let highlightInterval = null;
+
+    // DOM elements
+    const avatarSelectionEl = document.getElementById('avatar-selection');
+    const customUploadEl = document.getElementById('custom-upload');
+    const uploadIconEl = document.getElementById('upload-icon');
+    const uploadTextEl = document.getElementById('upload-text');
+    const avatarUploadEl = document.getElementById('avatar-upload');
+    const mainAvatarEl = document.getElementById('main-avatar');
+    const avatarImageEl = document.getElementById('avatar-image');
+    const lipSyncEl = document.getElementById('lip-sync');
+    const speakingIndicatorEl = document.getElementById('speaking-indicator');
+    const speechStatusEl = document.getElementById('speech-status');
+    const textDisplayEl = document.getElementById('text-display');
+    const greetingsListEl = document.getElementById('greetings-list');
+    const speakBtn = document.getElementById('speak-btn');
+    const stopBtn = document.getElementById('stop-btn');
+
+    // Initialize the app
+    function init() {
+      // Set default avatar
+      selectedAvatar = DEFAULT_AVATARS[0];
+      avatarImageEl.src = selectedAvatar.image;
+      
+      // Render avatar selection
+      renderAvatarSelection();
+      
+      // Render greetings list
+      renderGreetingsList();
+      
+      // Setup event listeners
+      setupEventListeners();
+    }
+
+    // Render avatar selection buttons
+    function renderAvatarSelection() {
+      avatarSelectionEl.innerHTML = '';
+      
+      DEFAULT_AVATARS.forEach(avatar => {
+        const button = document.createElement('button');
+        button.className = 'avatar-btn';
+        if (selectedAvatar?.id === avatar.id && avatarMode === "default") {
+          button.classList.add('selected');
+        }
+        button.onclick = () => handleAvatarSelect(avatar);
+        
+        const img = document.createElement('img');
+        img.src = avatar.thumbnail;
+        img.alt = avatar.name;
+        img.className = 'avatar-thumb';
+        
+        const span = document.createElement('span');
+        span.className = 'avatar-name';
+        span.textContent = avatar.name;
+        
+        button.appendChild(img);
+        button.appendChild(span);
+        avatarSelectionEl.appendChild(button);
+      });
+    }
+
+    // Render greetings list
+    function renderGreetingsList() {
+      greetingsListEl.innerHTML = '';
+      
+      GREETINGS_DATA.forEach((greeting, index) => {
+        const button = document.createElement('button');
+        button.className = 'greeting-btn';
+        if (currentGreetingIndex === index) {
+          button.classList.add('selected');
+        }
+        button.onclick = () => handleGreetingSelect(greeting, index);
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'greeting-name';
+        nameDiv.textContent = greeting.name;
+        
+        const proverbDiv = document.createElement('div');
+        proverbDiv.className = 'greeting-proverb';
+        proverbDiv.textContent = greeting.proverb;
+        
+        button.appendChild(nameDiv);
+        button.appendChild(proverbDiv);
+        greetingsListEl.appendChild(button);
+      });
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Custom avatar upload
+      customUploadEl.addEventListener('click', () => {
+        avatarUploadEl.click();
+      });
+      
+      avatarUploadEl.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleCustomAvatarUpload(e.target.files[0]);
+        }
+      });
+      
+      // Speak button
+      speakBtn.addEventListener('click', () => {
+        handleGreetingSelect(GREETINGS_DATA[currentGreetingIndex], currentGreetingIndex);
+      });
+      
+      // Stop button
+      stopBtn.addEventListener('click', handleStop);
+      
+      // Drag and drop for custom upload
+      customUploadEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        customUploadEl.classList.add('active');
+      });
+      
+      customUploadEl.addEventListener('dragleave', () => {
+        customUploadEl.classList.remove('active');
+      });
+      
+      customUploadEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        customUploadEl.classList.remove('active');
+        
+        if (e.dataTransfer.files.length > 0) {
+          handleCustomAvatarUpload(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    // Handle avatar selection
+    function handleAvatarSelect(avatar) {
+      selectedAvatar = avatar;
+      avatarMode = "default";
+      customAvatar = null;
+      avatarImageEl.src = avatar.image;
+      renderAvatarSelection();
+    }
+
+    // Handle custom avatar upload
+    function handleCustomAvatarUpload(file) {
       const reader = new FileReader();
       
       reader.onload = (e) => {
-        setCustomAvatar(e.target?.result);
-        setAvatarMode("custom");
-        // Create a custom avatar object
-        setSelectedAvatar({
+        customAvatar = e.target.result;
+        avatarMode = "custom";
+        selectedAvatar = {
           id: 5,
           name: "Custom Avatar",
           type: "custom",
-          image: e.target?.result,
-          thumbnail: e.target?.result
-        });
+          image: e.target.result,
+          thumbnail: e.target.result
+        };
+        avatarImageEl.src = e.target.result;
+        renderAvatarSelection();
+        
+        // Update upload button
+        uploadTextEl.textContent = 'Change Custom Avatar';
+        uploadIconEl.innerHTML = `<img src="${e.target.result}" alt="Custom Avatar" class="icon" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
       };
       
       reader.readAsDataURL(file);
     }
-  }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-    onDrop, 
-    accept: { 'image/*': [] },
-    maxFiles: 1 
-  });
-
-  // Speak the greeting with lip sync and text highlighting
-  const speakGreeting = useCallback((greeting) => {
-    if (!speechSynthesisRef.current || !selectedAvatar) return;
-    
-    // Cancel any ongoing speech
-    speechSynthesisRef.current.cancel();
-    
-    const fullText = `${greeting.name}. ${greeting.proverb}`;
-    setCurrentText(fullText);
-    setHighlightedText("");
-    setIsSpeaking(true);
-    currentWordIndexRef.current = 0;
-    
-    // Create utterance
-    const utterance = new SpeechSynthesisUtterance(fullText);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    
-    // Try to use a voice that matches the avatar type
-    const voices = speechSynthesisRef.current.getVoices();
-    const preferredVoice = voices.find(voice => {
-      if (selectedAvatar.type === "female") {
-        return voice.name.toLowerCase().includes("female") || 
-               voice.name.toLowerCase().includes("woman");
-      } else if (selectedAvatar.type === "male") {
-        return voice.name.toLowerCase().includes("male") || 
-               voice.name.toLowerCase().includes("man");
-      }
-      return false;
-    }) || voices.find(voice => voice.default);
-    
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-    
-    // Split text into words for highlighting
-    const words = fullText.split(/(\s+)/).filter(word => word.trim().length > 0);
-    wordBoundaryRef.current = words.map((_, index) => {
-      const before = words.slice(0, index + 1).join(" ");
-      return before.length;
-    });
-    
-    utterance.onstart = () => {
-      startTimeRef.current = Date.now();
-      setIsSpeaking(true);
-      animateLipSync();
-    };
-    
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      setHighlightedText(fullText);
-      currentWordIndexRef.current = 0;
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      setLipSyncState("closed");
-      setShowGreetingsList(true);
-    };
-    
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      setLipSyncState("closed");
-    };
-    
-    // Start speaking
-    utteranceRef.current = utterance;
-    speechSynthesisRef.current.speak(utterance);
-    
-    // Start word highlighting
-    highlightWords(utterance, words, fullText);
-    
-  }, [selectedAvatar]);
-
-  // Animate lip sync based on speech
-  const animateLipSync = useCallback(() => {
-    const animate = () => {
-      const elapsed = Date.now() - startTimeRef.current;
-      const cycleDuration = 300; // ms for mouth open/close cycle
-      const progress = (elapsed % cycleDuration) / cycleDuration;
+    // Speak the greeting with lip sync and text highlighting
+    function speakGreeting(greeting) {
+      if (!window.speechSynthesis || !selectedAvatar) return;
       
-      if (progress < 0.4) {
-        setLipSyncState("open");
-      } else if (progress < 0.8) {
-        setLipSyncState("wide");
-      } else {
-        setLipSyncState("closed");
-      }
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
       
-      if (isSpeaking) {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      }
-    };
-    
-    animationFrameRef.current = requestAnimationFrame(animate);
-  }, [isSpeaking]);
-
-  // Highlight words as they are spoken
-  const highlightWords = useCallback((utterance, words, fullText) => {
-    const startTime = Date.now();
-    const totalDuration = fullText.length * 100; // Estimate duration
-    
-    const highlightInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = elapsed / totalDuration;
-      const currentIndex = Math.min(
-        Math.floor(progress * words.length),
-        words.length - 1
-      );
+      const fullText = `${greeting.name}. ${greeting.proverb}`;
+      currentText = fullText;
+      highlightedText = "";
+      isSpeaking = true;
       
-      if (currentIndex >= 0) {
-        const highlighted = words.slice(0, currentIndex + 1).join(" ");
-        setHighlightedText(highlighted);
-        currentWordIndexRef.current = currentIndex;
-      }
+      // Create utterance
+      utterance = new SpeechSynthesisUtterance(fullText);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.volume = 1;
       
-      if (elapsed >= totalDuration) {
-        clearInterval(highlightInterval);
-        setHighlightedText(fullText);
-      }
-    }, 200);
-    
-    // Cleanup
-    utterance.onend = () => {
-      clearInterval(highlightInterval);
-      setHighlightedText(fullText);
-    };
-    
-  }, []);
-
-  // Handle greeting selection
-  const handleGreetingSelect = (greeting, index) => {
-    setCurrentGreetingIndex(index);
-    setShowGreetingsList(false);
-    speakGreeting(greeting);
-  };
-
-  // Stop speaking
-  const handleStop = () => {
-    if (speechSynthesisRef.current) {
-      speechSynthesisRef.current.cancel();
-    }
-    setIsSpeaking(false);
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    setLipSyncState("closed");
-    setHighlightedText("");
-    setShowGreetingsList(true);
-  };
-
-  // Get the current avatar image
-  const getAvatarImage = () => {
-    if (avatarMode === "custom" && customAvatar) {
-      return customAvatar;
-    }
-    return selectedAvatar?.image || DEFAULT_AVATARS[0]?.image;
-  };
-
-  // Render the avatar with lip sync animation
-  const renderAvatar = () => {
-    const avatarSize = 300;
-    const avatarImage = getAvatarImage();
-    
-    return (
-      <div className="relative flex justify-center items-center mb-6">
-        <div 
-          className="relative transition-all duration-200"
-          style={{
-            width: avatarSize,
-            height: avatarSize,
-            borderRadius: '50%',
-            overflow: 'hidden',
-            border: isSpeaking ? '3px solid #3b82f6' : '3px solid #e5e7eb',
-            boxShadow: isSpeaking ? '0 0 20px rgba(59, 130, 246, 0.5)' : '0 0 10px rgba(0,0,0,0.1)'
-          }}
-        >
-          <img 
-            src={avatarImage} 
-            alt={selectedAvatar?.name || "Avatar"}
-            className="w-full h-full object-cover"
-          />
-          
-          {/* Lip sync overlay */}
-          {isSpeaking && (
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-12 overflow-hidden">
-              <div 
-                className={`absolute bottom-0 w-full h-full bg-gradient-to-t from-red-500 to-transparent rounded-full transition-all duration-100 ${
-                  lipSyncState === 'closed' ? 'h-0' : 
-                  lipSyncState === 'open' ? 'h-8' : 
-                  'h-12'
-                }`}
-                style={{
-                  width: lipSyncState === 'closed' ? '60%' : 
-                         lipSyncState === 'open' ? '80%' : '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)'
-                }}
-              />
-            </div>
-          )}
-          
-          {/* Speaking indicator */}
-          {isSpeaking && (
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full animate-pulse">
-              <div className="w-full h-full bg-white rounded-full opacity-60 animate-ping"></div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Render text display with highlighting
-  const renderTextDisplay = () => {
-    if (!currentText) return null;
-    
-    return (
-      <div className="bg-white rounded-lg p-6 shadow-lg max-w-2xl mx-auto mb-6">
-        <div className="text-lg font-semibold text-gray-600 mb-2">
-          {highlightedText ? "Speaking..." : "Ready to speak"}
-        </div>
-        <div className="text-xl leading-relaxed text-gray-800 min-h-[120px]">
-          {highlightedText ? (
-            <span>
-              {currentText.split(' ').map((word, index) => {
-                const wordWithSpace = index < currentText.split(' ').length - 1 ? word + ' ' : word;
-                const isHighlighted = highlightedText.includes(wordWithSpace) || 
-                                    highlightedText.endsWith(word);
-                return (
-                  <span 
-                    key={index}
-                    className={`transition-all duration-200 ${
-                      isHighlighted ? 'bg-blue-100 text-blue-900 font-bold text-2xl' : 'text-gray-700'
-                    }`}
-                  >
-                    {wordWithSpace}
-                  </span>
-                );
-              })}
-            </span>
-          ) : (
-            <span className="text-gray-500">{currentText}</span>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Render avatar selection
-  const renderAvatarSelection = () => {
-    return (
-      <div className="bg-white rounded-lg p-4 shadow-lg mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Select Avatar</h3>
-        <div className="flex gap-4 mb-4">
-          {DEFAULT_AVATARS.map((avatar) => (
-            <button
-              key={avatar.id}
-              onClick={() => handleAvatarSelect(avatar)}
-              className={`flex flex-col items-center p-2 rounded-lg transition-all ${
-                selectedAvatar?.id === avatar.id && avatarMode === "default" 
-                  ? 'bg-blue-100 ring-2 ring-blue-500' 
-                  : 'bg-gray-50 hover:bg-gray-100'
-              }`}
-            >
-              <img 
-                src={avatar.thumbnail} 
-                alt={avatar.name}
-                className="w-16 h-16 rounded-full object-cover mb-2 border-2 border-white shadow-md"
-              />
-              <span className="text-sm font-medium text-gray-700">{avatar.name}</span>
-            </button>
-          ))}
-        </div>
-        
-        {/* Custom avatar upload */}
-        <div 
-          {...getRootProps()}
-          className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed transition-all cursor-pointer ${
-            isDragActive ? 'bg-blue-50 border-blue-500' : 'bg-gray-50 border-gray-300'
-          }`}
-        >
-          <input {...getInputProps()} />
-          <div className="flex items-center gap-2">
-            {customAvatar ? (
-              <img 
-                src={customAvatar} 
-                alt="Custom Avatar" 
-                className="w-12 h-12 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                </svg>
-              </div>
-            )}
-            <span className="text-sm text-gray-600">
-              {customAvatar ? 'Change Custom Avatar' : 'Upload Your Photo'}
-            </span>
-          </div>
-          {isDragActive && (
-            <p className="text-xs text-blue-600 mt-1">Drop the image here</p>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Render greetings list
-  const renderGreetingsList = () => {
-    if (!showGreetingsList) return null;
-    
-    return (
-      <div className="bg-white rounded-lg p-4 shadow-lg max-h-64 overflow-y-auto">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Select Greeting</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {GREETINGS_DATA.map((greeting, index) => (
-            <button
-              key={greeting.id}
-              onClick={() => handleGreetingSelect(greeting, index)}
-              className={`p-3 rounded-lg text-left transition-all ${
-                currentGreetingIndex === index 
-                  ? 'bg-blue-100 ring-2 ring-blue-500' 
-                  : 'bg-gray-50 hover:bg-gray-100'
-              }`}
-            >
-              <div className="font-medium text-gray-800">{greeting.name}</div>
-              <div className="text-sm text-gray-600 truncate">{greeting.proverb}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Render controls
-  const renderControls = () => {
-    return (
-      <div className="flex justify-center gap-4 mb-6">
-        {isSpeaking ? (
-          <button 
-            onClick={handleStop}
-            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            Stop
-          </button>
-        ) : (
-          <button 
-            onClick={() => handleGreetingSelect(GREETINGS_DATA[currentGreetingIndex], currentGreetingIndex)}
-            disabled={!selectedAvatar || isSpeaking}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M9.388 4.388a1 1 0 011.22.002l4.258 4.258a1 1 0 010 1.414l-4.258 4.258a1 1 0 01-1.414-1.414L12.172 11H3a1 1 0 01-1-1v-2a1 1 0 011-1h9.172l-2.788-2.788a1 1 0 01.002-1.22z" clipRule="evenodd" />
-            </svg>
-            Speak Greeting
-          </button>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">🎤 Speaking Greetings App</h1>
-          <p className="text-gray-600">Choose an avatar and let it speak your greetings!</p>
-        </header>
-
-        {/* Avatar Selection */}
-        {renderAvatarSelection()}
-
-        {/* Main Avatar Display */}
-        {renderAvatar()}
-
-        {/* Text Display */}
-        {renderTextDisplay()}
-
-        {/* Controls */}
-        {renderControls()}
-
-        {/* Greetings List */}
-        {renderGreetingsList()}
-
-        {/* Instructions */}
-        <div className="text-center text-sm text-gray-500 mt-8">
-          <p>💡 Tip: Text will be highlighted in blue and appear larger while the avatar is speaking</p>
-          <p>🎭 Select from 4 default avatars or upload your own photo</p>
-          <p>🔊 The avatar's lips will sync with the speech</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Voice loading effect
-const VoiceLoader = () => {
-  const [voicesLoaded, setVoicesLoaded] = useState(false);
-  
-  useEffect(() => {
-    const loadVoices = () => {
+      // Try to use a voice that matches the avatar type
       const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        setVoicesLoaded(true);
-      } else {
-        // Try again after a delay
-        setTimeout(loadVoices, 500);
+      let preferredVoice = null;
+      
+      if (selectedAvatar.type === "female") {
+        preferredVoice = voices.find(voice => 
+          voice.name.toLowerCase().includes("female") || 
+          voice.name.toLowerCase().includes("woman")
+        );
+      } else if (selectedAvatar.type === "male") {
+        preferredVoice = voices.find(voice => 
+          voice.name.toLowerCase().includes("male") || 
+          voice.name.toLowerCase().includes("man")
+        );
       }
-    };
-    
-    if (window.speechSynthesis) {
-      loadVoices();
-      window.speechSynthesis.onvoiceschanged = loadVoices;
+      
+      if (!preferredVoice) {
+        preferredVoice = voices.find(voice => voice.default);
+      }
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      // Setup event handlers
+      utterance.onstart = () => {
+        startTime = Date.now();
+        isSpeaking = true;
+        speechStatusEl.textContent = "Speaking...";
+        mainAvatarEl.classList.add('speaking');
+        speakingIndicatorEl.classList.add('show');
+        animateLipSync();
+        startWordHighlighting(fullText);
+        
+        speakBtn.classList.add('hidden');
+        stopBtn.classList.remove('hidden');
+      };
+      
+      utterance.onend = () => {
+        isSpeaking = false;
+        highlightedText = fullText;
+        speechStatusEl.textContent = "Ready to speak";
+        mainAvatarEl.classList.remove('speaking');
+        speakingIndicatorEl.classList.remove('show');
+        lipSyncEl.className = 'lip-sync';
+        lipSyncState = "closed";
+        
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        
+        if (highlightInterval) {
+          clearInterval(highlightInterval);
+          highlightInterval = null;
+        }
+        
+        updateTextDisplay();
+        speakBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
+      };
+      
+      utterance.onerror = () => {
+        isSpeaking = false;
+        speechStatusEl.textContent = "Error speaking";
+        mainAvatarEl.classList.remove('speaking');
+        speakingIndicatorEl.classList.remove('show');
+        lipSyncEl.className = 'lip-sync';
+        lipSyncState = "closed";
+        
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        
+        if (highlightInterval) {
+          clearInterval(highlightInterval);
+          highlightInterval = null;
+        }
+        
+        speakBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
+      };
+      
+      // Start speaking
+      window.speechSynthesis.speak(utterance);
     }
-  }, []);
-  
-  return null;
-};
 
-// Main App Component
-const App = () => {
-  return (
-    <>
-      <VoiceLoader />
-      <GreetingsApp />
-    </>
-  );
-};
+    // Animate lip sync
+    function animateLipSync() {
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const cycleDuration = 300;
+        const progress = (elapsed % cycleDuration) / cycleDuration;
+        
+        if (progress < 0.4) {
+          lipSyncEl.className = 'lip-sync open';
+          lipSyncState = "open";
+        } else if (progress < 0.8) {
+          lipSyncEl.className = 'lip-sync wide';
+          lipSyncState = "wide";
+        } else {
+          lipSyncEl.className = 'lip-sync';
+          lipSyncState = "closed";
+        }
+        
+        if (isSpeaking) {
+          animationFrame = requestAnimationFrame(animate);
+        }
+      };
+      
+      animationFrame = requestAnimationFrame(animate);
+    }
 
-export default App;
+    // Start word highlighting
+    function startWordHighlighting(fullText) {
+      const words = fullText.split(/(\s+)/).filter(word => word.trim().length > 0);
+      let currentIndex = 0;
+      const start = Date.now();
+      const totalDuration = fullText.length * 100;
+      
+      highlightInterval = setInterval(() => {
+        const elapsed = Date.now() - start;
+        const progress = elapsed / totalDuration;
+        currentIndex = Math.min(Math.floor(progress * words.length), words.length - 1);
+        
+        if (currentIndex >= 0) {
+          highlightedText = words.slice(0, currentIndex + 1).join(" ");
+          updateTextDisplay();
+        }
+        
+        if (elapsed >= totalDuration) {
+          clearInterval(highlightInterval);
+          highlightedText = fullText;
+          updateTextDisplay();
+        }
+      }, 200);
+    }
+
+    // Update text display with highlighting
+    function updateTextDisplay() {
+      if (!currentText) {
+        textDisplayEl.textContent = 'Select a greeting to begin';
+        return;
+      }
+      
+      if (!highlightedText) {
+        textDisplayEl.textContent = currentText;
+        return;
+      }
+      
+      const words = currentText.split(' ');
+      let html = '';
+      
+      words.forEach((word, index) => {
+        const wordWithSpace = index < words.length - 1 ? word + ' ' : word;
+        const isHighlighted = highlightedText.includes(wordWithSpace) || 
+                            highlightedText.endsWith(word);
+        
+        const className = isHighlighted ? 'word highlight' : 'word';
+        html += `<span class="${className}">${wordWithSpace}</span>`;
+      });
+      
+      textDisplayEl.innerHTML = html;
+    }
+
+    // Handle greeting selection
+    function handleGreetingSelect(greeting, index) {
+      currentGreetingIndex = index;
+      speakGreeting(greeting);
+      
+      // Update selected greeting in UI
+      const buttons = greetingsListEl.querySelectorAll('.greeting-btn');
+      buttons.forEach((btn, i) => {
+        if (i === index) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+    }
+
+    // Stop speaking
+    function handleStop() {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      isSpeaking = false;
+      highlightedText = "";
+      speechStatusEl.textContent = "Ready to speak";
+      mainAvatarEl.classList.remove('speaking');
+      speakingIndicatorEl.classList.remove('show');
+      lipSyncEl.className = 'lip-sync';
+      lipSyncState = "closed";
+      
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      }
+      
+      if (highlightInterval) {
+        clearInterval(highlightInterval);
+        highlightInterval = null;
+      }
+      
+      updateTextDisplay();
+      speakBtn.classList.remove('hidden');
+      stopBtn.classList.add('hidden');
+    }
+
+    // Initialize the app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
