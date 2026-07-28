@@ -1,951 +1,1843 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Speaking Greetings App</title>
-  <style>
-    :root {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
-      padding: 1.5rem;
-      margin: 0;
-    }
-    
-    .container {
-      max-width: 48rem;
-      margin: 0 auto;
-    }
-    
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    
-    h1 {
-      font-size: 1.875rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 0.5rem;
-    }
-    
-    .subtitle {
-      color: #64748b;
-      margin: 0;
-    }
-    
-    .card {
-      background: white;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-      margin-bottom: 1.5rem;
-    }
-    
-    .section-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 1rem;
-    }
-    
-    /* Avatar Selection */
-    .avatar-grid {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
-    
-    .avatar-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0.5rem;
-      border-radius: 0.5rem;
-      transition: all 0.2s;
-      cursor: pointer;
-      border: none;
-      background: #f8fafc;
-    }
-    
-    .avatar-btn:hover {
-      background: #f1f5f9;
-    }
-    
-    .avatar-btn.selected {
-      background: #dbeafe;
-      border: 2px solid #3b82f6;
-    }
-    
-    .avatar-thumb {
-      width: 4rem;
-      height: 4rem;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid white;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      margin-bottom: 0.5rem;
-    }
-    
-    .avatar-name {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #475569;
-    }
-    
-    /* Upload Area */
-    .upload-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      border: 2px dashed #cbd5e1;
-      border-radius: 0.5rem;
-      transition: all 0.2s;
-      cursor: pointer;
-      background: #f8fafc;
-    }
-    
-    .upload-area:hover {
-      background: #f1f5f9;
-      border-color: #94a3b8;
-    }
-    
-    .upload-area.active {
-      background: #eff6ff;
-      border-color: #3b82f6;
-    }
-    
-    .upload-icon {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 50%;
-      background: #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 0.5rem;
-    }
-    
-    .upload-icon img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    
-    .upload-text {
-      font-size: 0.875rem;
-      color: #64748b;
-    }
-    
-    /* Main Avatar */
-    .main-avatar-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-    
-    .main-avatar-wrapper {
-      position: relative;
-      width: 18.75rem;
-      height: 18.75rem;
-      border-radius: 50%;
-      overflow: hidden;
-      transition: all 0.2s;
-      border: 3px solid #e2e8f0;
-      box-shadow: 0 0 0.625rem rgba(0,0,0,0.1);
-    }
-    
-    .main-avatar-wrapper.speaking {
-      border-color: #3b82f6;
-      box-shadow: 0 0 1.25rem rgba(59, 130, 246, 0.5);
-    }
-    
-    .main-avatar-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    
-    /* Lip Sync */
-    .lip-sync {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60%;
-      height: 0;
-      background: linear-gradient(to top, rgba(239, 68, 68, 0.8), transparent);
-      border-radius: 50%;
-      transition: all 0.1s;
-    }
-    
-    .lip-sync.open {
-      height: 1.875rem;
-      width: 80%;
-    }
-    
-    .lip-sync.wide {
-      height: 2.5rem;
-      width: 100%;
-    }
-    
-    /* Speaking Indicator */
-    .speaking-indicator {
-      position: absolute;
-      top: -0.5rem;
-      right: -0.5rem;
-      width: 1.5rem;
-      height: 1.5rem;
-      background: #3b82f6;
-      border-radius: 50%;
-      display: none;
-    }
-    
-    .speaking-indicator.show {
-      display: block;
-    }
-    
-    .speaking-indicator::after {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: white;
-      border-radius: 50%;
-      opacity: 0.6;
-      animation: ping 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    
-    @keyframes ping {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 0.6;
-      }
-      50% {
-        transform: scale(1.2);
-        opacity: 0;
-      }
-    }
-    
-    /* Text Display */
-    .text-display-card {
-      max-width: 36rem;
-      margin: 0 auto 1.5rem;
-    }
-    
-    .status-text {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #64748b;
-      margin-bottom: 0.5rem;
-    }
-    
-    .text-content {
-      font-size: 1.25rem;
-      line-height: 1.75;
-      color: #1e293b;
-      min-height: 7.5rem;
-    }
-    
-    .word {
-      transition: all 0.2s;
-    }
-    
-    .word.highlight {
-      background-color: #dbeafe;
-      color: #1e40af;
-      font-weight: 700;
-      font-size: 1.5rem;
-    }
-    
-    /* Controls */
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: none;
-    }
-    
-    .btn-primary {
-      background: #3b82f6;
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background: #2563eb;
-    }
-    
-    .btn-danger {
-      background: #ef4444;
-      color: white;
-    }
-    
-    .btn-danger:hover {
-      background: #dc2626;
-    }
-    
-    .btn:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-    }
-    
-    /* Greetings List */
-    .greetings-card {
-      max-height: 16rem;
-      overflow-y: auto;
-    }
-    
-    .greetings-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
-    }
-    
-    .greeting-btn {
-      display: flex;
-      flex-direction: column;
-      text-align: left;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      transition: all 0.2s;
-      border: none;
-      background: #f8fafc;
-      cursor: pointer;
-    }
-    
-    .greeting-btn:hover {
-      background: #f1f5f9;
-    }
-    
-    .greeting-btn.selected {
-      background: #dbeafe;
-      border: 2px solid #3b82f6;
-    }
-    
-    .greeting-name {
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 0.25rem;
-    }
-    
-    .greeting-proverb {
-      font-size: 0.875rem;
-      color: #64748b;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    /* Scrollbar */
-    .greetings-card::-webkit-scrollbar {
-      width: 0.375rem;
-    }
-    
-    .greetings-card::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 0.1875rem;
-    }
-    
-    .greetings-card::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 0.1875rem;
-    }
-    
-    .greetings-card::-webkit-scrollbar-thumb:hover {
-      background: #a1a1a1;
-    }
-    
-    /* Instructions */
-    .instructions {
-      text-align: center;
-      font-size: 0.875rem;
-      color: #94a3b8;
-      margin-top: 2rem;
-    }
-    
-    .instructions p {
-      margin: 0.25rem 0;
-    }
-    
-    /* Utility classes */
-    .hidden {
-      display: none !important;
-    }
-    
-    .flex {
-      display: flex;
-    }
-    
-    .items-center {
-      align-items: center;
-    }
-    
-    .justify-center {
-      justify-content: center;
-    }
-    
-    .gap-2 {
-      gap: 0.5rem;
-    }
-    
-    .gap-4 {
-      gap: 1rem;
-    }
-    
-    /* SVG Icons */
-    .icon {
-      width: 1.25rem;
-      height: 1.25rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greetings Card Generator</title>
+    <style>
+        :root {
+            --app-bg: #FFE4E1;
+            --btn-color: #0000FF;
+            --btn-hover: #0000CC;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--app-bg);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8B0000;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            background: #f9f9f9;
+        }
+        
+        input[type="color"] {
+            width: 100%;
+            height: 50px;
+            padding: 5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .color-picker-container input[type="color"] {
+            width: 60px;
+            height: 50px;
+        }
+        
+        .color-picker-container span {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .btn {
+            background-color: var(--btn-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover:not(:disabled) {
+            background-color: var(--btn-hover);
+        }
+        
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-danger {
+            background-color: #ff4444;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background-color: #cc0000;
+        }
+        
+        .btn-success {
+            background-color: #4CAF50;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .preview-container {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        #previewCanvas {
+            max-width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f0f0f0;
+        }
+        
+        .text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px 20px;
+            box-sizing: border-box;
+        }
+        
+        .text-content {
+            text-align: center;
+            word-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            max-height: 70%;
+            overflow-y: auto;
+            pointer-events: auto;
+            padding: 10px;
+            color: #000000;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8), -2px -2px 4px rgba(255,255,255,0.8), 2px -2px 4px rgba(255,255,255,0.8), -2px 2px 4px rgba(255,255,255,0.8);
+        }
+        
+        .text-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .text-content::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        
+        .text-content::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+        
+        .text-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .greeting-name {
+            font-weight: bold;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(255,255,255,0.9), -3px -3px 6px rgba(255,255,255,0.9), 3px -3px 6px rgba(255,255,255,0.9), -3px 3px 6px rgba(255,255,255,0.9);
+        }
+        
+        .greeting-proverb {
+            font-size: 1em;
+            line-height: 1.6;
+        }
+        
+        #videoPreview {
+            max-width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .media-preview {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+        
+        .media-item {
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+            min-width: 220px;
+        }
+        
+        .media-item img,
+        .media-item video,
+        .media-item audio {
+            max-width: 200px;
+            max-height: 150px;
+            display: block;
+        }
+        
+        .media-item .delete-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+        
+        .media-item .delete-btn:hover {
+            background: #cc0000;
+            transform: scale(1.1);
+        }
+        
+        .media-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .font-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .upload-info {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* NEW: Avatar Section Styles */
+        .avatar-section {
+            margin-bottom: 20px;
+        }
+        
+        .avatar-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .avatar-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            background: white;
+        }
+        
+        .avatar-btn:hover {
+            background: #f9f9f9;
+            border-color: #ccc;
+        }
+        
+        .avatar-btn.selected {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+        
+        .avatar-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 5px;
+        }
+        
+        .avatar-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .upload-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            background: #f9f9f9;
+        }
+        
+        .upload-area:hover {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+        
+        .upload-area.active {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+        
+        .upload-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        
+        .upload-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .upload-text {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Main Avatar Display */
+        .main-avatar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .main-avatar-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: all 0.2s;
+            border: 3px solid #e2e8f0;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .main-avatar-wrapper.speaking {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        .main-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Lip Sync */
+        .lip-sync {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 0;
+            background: linear-gradient(to top, rgba(239, 68, 68, 0.8), transparent);
+            border-radius: 50%;
+            transition: all 0.1s;
+        }
+        
+        .lip-sync.open {
+            height: 25px;
+            width: 80%;
+        }
+        
+        .lip-sync.wide {
+            height: 35px;
+            width: 100%;
+        }
+        
+        /* Speaking Indicator */
+        .speaking-indicator {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: none;
+        }
+        
+        .speaking-indicator.show {
+            display: block;
+        }
+        
+        .speaking-indicator::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: ping 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes ping {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+        }
+        
+        /* Speaking Text Display */
+        .speaking-text-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .speech-status {
+            font-size: 16px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+        
+        .speaking-text {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #1e293b;
+            min-height: 80px;
+        }
+        
+        .word {
+            transition: all 0.2s;
+        }
+        
+        .word.highlight {
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-weight: 700;
+            font-size: 22px;
+        }
+        
+        @media (max-width: 768px) {
+            .checkbox-group {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-right: 0;
+            }
+            
+            .media-item {
+                min-width: 100%;
+            }
+            
+            .text-content {
+                font-size: 0.9em;
+                max-height: 65%;
+            }
+            
+            .text-overlay {
+                padding: 30px 15px 15px;
+            }
+            
+            .avatar-grid {
+                gap: 10px;
+            }
+            
+            .avatar-btn {
+                padding: 6px;
+            }
+            
+            .avatar-thumb {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .main-avatar-wrapper {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header>
-      <h1>🎤 Speaking Greetings App</h1>
-      <p class="subtitle">Choose an avatar and let it speak your greetings!</p>
-    </header>
-
-    <!-- Avatar Selection -->
-    <div class="card">
-      <h2 class="section-title">Select Avatar</h2>
-      <div class="avatar-grid" id="avatar-selection">
-        <!-- Avatars inserted by JS -->
-      </div>
-      
-      <!-- Custom avatar upload -->
-      <div class="upload-area" id="custom-upload">
-        <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
-        <div class="upload-icon" id="upload-icon">
-          <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-          </svg>
+    <div class="container">
+        <h1>🎉 Greetings Card Generator</h1>
+        
+        <!-- NEW: Avatar Speaking Section -->
+        <div class="card avatar-section">
+            <h2>🎤 Speaking Avatar</h2>
+            <p style="color: #666; margin-bottom: 15px; font-size: 14px;">Select an avatar to speak your greetings with lip sync!</p>
+            
+            <!-- Avatar Selection -->
+            <div class="form-group">
+                <label>Select Avatar</label>
+                <div class="avatar-grid" id="avatar-selection">
+                    <!-- Avatars will be inserted here -->
+                </div>
+                
+                <!-- Custom avatar upload -->
+                <div class="upload-area" id="custom-upload">
+                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
+                    <div class="upload-icon" id="upload-icon">
+                        <svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                        </svg>
+                    </div>
+                    <span class="upload-text" id="upload-text">Upload Your Photo</span>
+                </div>
+            </div>
+            
+            <!-- Main Avatar Display -->
+            <div class="main-avatar-container">
+                <div class="main-avatar-wrapper" id="main-avatar">
+                    <img id="avatar-image" class="main-avatar-img" src="" alt="Avatar" />
+                    <div class="lip-sync" id="lip-sync"></div>
+                    <div class="speaking-indicator" id="speaking-indicator"></div>
+                </div>
+            </div>
+            
+            <!-- Speaking Text Display -->
+            <div class="speaking-text-container">
+                <div class="speech-status" id="speech-status">Ready to speak</div>
+                <div class="speaking-text" id="speaking-text">
+                    Enter greeting name and proverb, then click "Speak Greeting"
+                </div>
+            </div>
+            
+            <!-- Speak/Stop Buttons -->
+            <div class="button-group">
+                <button id="speak-btn" class="btn btn-success">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 5px;">
+                        <path fill-rule="evenodd" d="M9.388 4.388a1 1 0 011.22.002l4.258 4.258a1 1 0 010 1.414l-4.258 4.258a1 1 0 01-1.414-1.414L12.172 11H3a1 1 0 01-1-1v-2a1 1 0 011-1h9.172l-2.788-2.788a1 1 0 01.002-1.22z" clip-rule="evenodd" />
+                    </svg>
+                    Speak Greeting
+                </button>
+                <button id="stop-btn" class="btn btn-danger hidden">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 5px;">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Stop
+                </button>
+            </div>
         </div>
-        <span class="upload-text" id="upload-text">Upload Your Photo</span>
-      </div>
+        
+        <div class="card">
+            <h2>Create Your Greeting</h2>
+            
+            <div class="form-group">
+                <label for="greetingName">Greeting Name *</label>
+                <input type="text" id="greetingName" placeholder="e.g., Good Morning, Happy Birthday, Merry Christmas">
+            </div>
+            
+            <div class="form-group">
+                <label for="greetingProverb">Greeting Proverb/Message *</label>
+                <input type="text" id="greetingProverb" placeholder="Type any message here - it will word wrap and scroll if long">
+            </div>
+            
+            <div class="form-group">
+                <label>Colors</label>
+                <div class="color-picker-container">
+                    <span>Background:</span>
+                    <input type="color" id="bgColor" value="#ffffff">
+                    <span>Font:</span>
+                    <input type="color" id="fontColor" value="#000000">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="bgImage">Background Image (Optional)</label>
+                <input type="file" id="bgImage" accept="image/*">
+            </div>
+            
+            <div class="form-group">
+                <label for="musicUpload">Upload Music (Optional)</label>
+                <input type="file" id="musicUpload" accept="audio/*">
+            </div>
+            
+            <div class="form-group">
+                <label for="videoUpload">Upload Video (Optional)</label>
+                <input type="file" id="videoUpload" accept="video/*">
+            </div>
+            
+            <div class="form-group">
+                <label>Font Options</label>
+                <div class="font-options">
+                    <div>
+                        <label for="fontFace">Font Face</label>
+                        <select id="fontFace">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Comic Sans MS">Comic Sans MS</option>
+                            <option value="Impact">Impact</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="fontSize">Font Size</label>
+                        <select id="fontSize">
+                            <option value="16">16px</option>
+                            <option value="20">20px</option>
+                            <option value="24">24px</option>
+                            <option value="28" selected>28px</option>
+                            <option value="32">32px</option>
+                            <option value="36">36px</option>
+                            <option value="40">40px</option>
+                            <option value="48">48px</option>
+                            <option value="56">56px</option>
+                            <option value="64">64px</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="isBold"> Bold</label>
+                    <label><input type="checkbox" id="isItalic"> Italic</label>
+                </div>
+            </div>
+            
+            <div class="media-preview" id="mediaPreviewContainer">
+                <p style="color: #888; font-size: 14px;">Uploaded media will appear here with delete options</p>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn" id="generateBtn">Generate Greetings</button>
+                <button class="btn" id="downloadBtn" disabled>Download</button>
+                <button class="btn" id="shareBtn" disabled>Share</button>
+            </div>
+        </div>
+
+        <div class="card preview-container">
+            <h2>Preview</h2>
+            <div style="position: relative;">
+                <canvas id="previewCanvas" width="800" height="600"></canvas>
+                <div class="text-overlay" id="textOverlay">
+                    <div class="text-content" id="textContent"></div>
+                </div>
+            </div>
+            <video id="videoPreview" controls class="hidden"></video>
+        </div>
     </div>
-
-    <!-- Main Avatar Display -->
-    <div class="main-avatar-container">
-      <div class="main-avatar-wrapper" id="main-avatar">
-        <img id="avatar-image" class="main-avatar-img" src="" alt="Avatar" />
-        <div class="lip-sync" id="lip-sync"></div>
-        <div class="speaking-indicator" id="speaking-indicator"></div>
-      </div>
-    </div>
-
-    <!-- Text Display -->
-    <div class="card text-display-card">
-      <div class="status-text" id="speech-status">Ready to speak</div>
-      <div class="text-content" id="text-display">
-        Select a greeting to begin
-      </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="controls">
-      <button id="stop-btn" class="btn btn-danger hidden">
-        <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-        </svg>
-        Stop
-      </button>
-      <button id="speak-btn" class="btn btn-primary">
-        <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M9.388 4.388a1 1 0 011.22.002l4.258 4.258a1 1 0 010 1.414l-4.258 4.258a1 1 0 01-1.414-1.414L12.172 11H3a1 1 0 01-1-1v-2a1 1 0 011-1h9.172l-2.788-2.788a1 1 0 01.002-1.22z" clip-rule="evenodd" />
-        </svg>
-        Speak Greeting
-      </button>
-    </div>
-
-    <!-- Greetings List -->
-    <div class="card greetings-card">
-      <h2 class="section-title">Select Greeting</h2>
-      <div class="greetings-grid" id="greetings-list">
-        <!-- Greetings inserted by JS -->
-      </div>
-    </div>
-
-    <!-- Instructions -->
-    <div class="instructions">
-      <p>💡 Tip: Text will be highlighted in blue and appear larger while the avatar is speaking</p>
-      <p>🎭 Select from 4 default avatars or upload your own photo</p>
-      <p>🔊 The avatar's lips will sync with the speech</p>
-    </div>
-  </div>
-
-  <script>
-    // Default avatar images - using data URIs to avoid CSP issues
-    const DEFAULT_AVATARS = [
-      {
-        id: 1,
-        name: "Female 1",
-        type: "female",
-        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-      },
-      {
-        id: 2,
-        name: "Female 2",
-        type: "female", 
-        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-      },
-      {
-        id: 3,
-        name: "Male 1",
-        type: "male",
-        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-      },
-      {
-        id: 4,
-        name: "Male 2", 
-        type: "male",
-        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-      }
-    ];
-
-    // Sample greetings data
-    const GREETINGS_DATA = [
-      { id: 1, name: "Good Morning", proverb: "Early bird catches the worm. Rise and shine!" },
-      { id: 2, name: "Good Afternoon", proverb: "Afternoon delight makes the day bright." },
-      { id: 3, name: "Good Evening", proverb: "Evening calm brings inner balm." },
-      { id: 4, name: "Good Night", proverb: "Sleep well, dream well, all is well." },
-      { id: 5, name: "Hello", proverb: "A warm hello opens every door." },
-      { id: 6, name: "Welcome", proverb: "Welcome hearts find welcome hands." },
-      { id: 7, name: "Namaste", proverb: "The divine in me bows to the divine in you." },
-      { id: 8, name: "Peace", proverb: "Peace begins with a smile." }
-    ];
-
-    // State variables
-    let selectedAvatar = null;
-    let customAvatar = null;
-    let isSpeaking = false;
-    let currentText = "";
-    let highlightedText = "";
-    let currentGreetingIndex = 0;
-    let lipSyncState = "closed";
-    let avatarMode = "default";
     
-    let utterance = null;
-    let animationFrame = null;
-    let startTime = 0;
-    let highlightInterval = null;
-
-    // DOM elements
-    const avatarSelectionEl = document.getElementById('avatar-selection');
-    const customUploadEl = document.getElementById('custom-upload');
-    const uploadIconEl = document.getElementById('upload-icon');
-    const uploadTextEl = document.getElementById('upload-text');
-    const avatarUploadEl = document.getElementById('avatar-upload');
-    const mainAvatarEl = document.getElementById('main-avatar');
-    const avatarImageEl = document.getElementById('avatar-image');
-    const lipSyncEl = document.getElementById('lip-sync');
-    const speakingIndicatorEl = document.getElementById('speaking-indicator');
-    const speechStatusEl = document.getElementById('speech-status');
-    const textDisplayEl = document.getElementById('text-display');
-    const greetingsListEl = document.getElementById('greetings-list');
-    const speakBtn = document.getElementById('speak-btn');
-    const stopBtn = document.getElementById('stop-btn');
-
-    // Initialize the app
-    function init() {
-      // Set default avatar
-      selectedAvatar = DEFAULT_AVATARS[0];
-      avatarImageEl.src = selectedAvatar.image;
-      
-      // Render avatar selection
-      renderAvatarSelection();
-      
-      // Render greetings list
-      renderGreetingsList();
-      
-      // Setup event listeners
-      setupEventListeners();
-    }
-
-    // Render avatar selection buttons
-    function renderAvatarSelection() {
-      avatarSelectionEl.innerHTML = '';
-      
-      DEFAULT_AVATARS.forEach(avatar => {
-        const button = document.createElement('button');
-        button.className = 'avatar-btn';
-        if (selectedAvatar?.id === avatar.id && avatarMode === "default") {
-          button.classList.add('selected');
-        }
-        button.onclick = () => handleAvatarSelect(avatar);
+    <script>
+        // ========== EXISTING CODE ==========
         
-        const img = document.createElement('img');
-        img.src = avatar.thumbnail;
-        img.alt = avatar.name;
-        img.className = 'avatar-thumb';
+        // DOM Elements
+        const greetingNameInput = document.getElementById('greetingName');
+        const greetingProverbInput = document.getElementById('greetingProverb');
+        const bgColorInput = document.getElementById('bgColor');
+        const fontColorInput = document.getElementById('fontColor');
+        const bgImageInput = document.getElementById('bgImage');
+        const musicUploadInput = document.getElementById('musicUpload');
+        const videoUploadInput = document.getElementById('videoUpload');
+        const fontFaceSelect = document.getElementById('fontFace');
+        const fontSizeSelect = document.getElementById('fontSize');
+        const isBoldCheckbox = document.getElementById('isBold');
+        const isItalicCheckbox = document.getElementById('isItalic');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const videoPreview = document.getElementById('videoPreview');
+        const mediaPreviewContainer = document.getElementById('mediaPreviewContainer');
+        const textOverlay = document.getElementById('textOverlay');
+        const textContent = document.getElementById('textContent');
         
-        const span = document.createElement('span');
-        span.className = 'avatar-name';
-        span.textContent = avatar.name;
+        // State
+        let bgImage = null;
+        let uploadedMusic = null;
+        let uploadedVideo = null;
+        let audioBlob = null;
+        let videoBlob = null;
+        let generatedBlob = null;
+        let generatedType = null;
+        let audioDuration = 0;
+        let videoDuration = 0;
         
-        button.appendChild(img);
-        button.appendChild(span);
-        avatarSelectionEl.appendChild(button);
-      });
-    }
-
-    // Render greetings list
-    function renderGreetingsList() {
-      greetingsListEl.innerHTML = '';
-      
-      GREETINGS_DATA.forEach((greeting, index) => {
-        const button = document.createElement('button');
-        button.className = 'greeting-btn';
-        if (currentGreetingIndex === index) {
-          button.classList.add('selected');
-        }
-        button.onclick = () => handleGreetingSelect(greeting, index);
+        // Canvas context
+        const ctx = previewCanvas.getContext('2d');
         
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'greeting-name';
-        nameDiv.textContent = greeting.name;
+        // ========== NEW: SPEAKING AVATAR VARIABLES ==========
         
-        const proverbDiv = document.createElement('div');
-        proverbDiv.className = 'greeting-proverb';
-        proverbDiv.textContent = greeting.proverb;
+        // Default avatar images - using data URIs to avoid CSP issues
+        const DEFAULT_AVATARS = [
+            {
+                id: 1,
+                name: "Female 1",
+                type: "female",
+                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+            },
+            {
+                id: 2,
+                name: "Female 2",
+                type: "female", 
+                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+            },
+            {
+                id: 3,
+                name: "Male 1",
+                type: "male",
+                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+            },
+            {
+                id: 4,
+                name: "Male 2", 
+                type: "male",
+                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
+                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
+            }
+        ];
         
-        button.appendChild(nameDiv);
-        button.appendChild(proverbDiv);
-        greetingsListEl.appendChild(button);
-      });
-    }
-
-    // Setup event listeners
-    function setupEventListeners() {
-      // Custom avatar upload
-      customUploadEl.addEventListener('click', () => {
-        avatarUploadEl.click();
-      });
-      
-      avatarUploadEl.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-          handleCustomAvatarUpload(e.target.files[0]);
-        }
-      });
-      
-      // Speak button
-      speakBtn.addEventListener('click', () => {
-        handleGreetingSelect(GREETINGS_DATA[currentGreetingIndex], currentGreetingIndex);
-      });
-      
-      // Stop button
-      stopBtn.addEventListener('click', handleStop);
-      
-      // Drag and drop for custom upload
-      customUploadEl.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        customUploadEl.classList.add('active');
-      });
-      
-      customUploadEl.addEventListener('dragleave', () => {
-        customUploadEl.classList.remove('active');
-      });
-      
-      customUploadEl.addEventListener('drop', (e) => {
-        e.preventDefault();
-        customUploadEl.classList.remove('active');
+        // Speaking state variables
+        let selectedAvatar = null;
+        let customAvatar = null;
+        let isSpeaking = false;
+        let currentText = "";
+        let highlightedText = "";
+        let lipSyncState = "closed";
+        let avatarMode = "default";
         
-        if (e.dataTransfer.files.length > 0) {
-          handleCustomAvatarUpload(e.dataTransfer.files[0]);
-        }
-      });
-    }
-
-    // Handle avatar selection
-    function handleAvatarSelect(avatar) {
-      selectedAvatar = avatar;
-      avatarMode = "default";
-      customAvatar = null;
-      avatarImageEl.src = avatar.image;
-      renderAvatarSelection();
-    }
-
-    // Handle custom avatar upload
-    function handleCustomAvatarUpload(file) {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        customAvatar = e.target.result;
-        avatarMode = "custom";
-        selectedAvatar = {
-          id: 5,
-          name: "Custom Avatar",
-          type: "custom",
-          image: e.target.result,
-          thumbnail: e.target.result
-        };
-        avatarImageEl.src = e.target.result;
-        renderAvatarSelection();
+        let utterance = null;
+        let animationFrame = null;
+        let startTime = 0;
+        let highlightInterval = null;
         
-        // Update upload button
-        uploadTextEl.textContent = 'Change Custom Avatar';
-        uploadIconEl.innerHTML = `<img src="${e.target.result}" alt="Custom Avatar" class="icon" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
-      };
-      
-      reader.readAsDataURL(file);
-    }
-
-    // Speak the greeting with lip sync and text highlighting
-    function speakGreeting(greeting) {
-      if (!window.speechSynthesis || !selectedAvatar) return;
-      
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      const fullText = `${greeting.name}. ${greeting.proverb}`;
-      currentText = fullText;
-      highlightedText = "";
-      isSpeaking = true;
-      
-      // Create utterance
-      utterance = new SpeechSynthesisUtterance(fullText);
-      utterance.rate = 1;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      // Try to use a voice that matches the avatar type
-      const voices = window.speechSynthesis.getVoices();
-      let preferredVoice = null;
-      
-      if (selectedAvatar.type === "female") {
-        preferredVoice = voices.find(voice => 
-          voice.name.toLowerCase().includes("female") || 
-          voice.name.toLowerCase().includes("woman")
-        );
-      } else if (selectedAvatar.type === "male") {
-        preferredVoice = voices.find(voice => 
-          voice.name.toLowerCase().includes("male") || 
-          voice.name.toLowerCase().includes("man")
-        );
-      }
-      
-      if (!preferredVoice) {
-        preferredVoice = voices.find(voice => voice.default);
-      }
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-      
-      // Setup event handlers
-      utterance.onstart = () => {
-        startTime = Date.now();
-        isSpeaking = true;
-        speechStatusEl.textContent = "Speaking...";
-        mainAvatarEl.classList.add('speaking');
-        speakingIndicatorEl.classList.add('show');
-        animateLipSync();
-        startWordHighlighting(fullText);
+        // New DOM elements for speaking avatar
+        const avatarSelectionEl = document.getElementById('avatar-selection');
+        const customUploadEl = document.getElementById('custom-upload');
+        const uploadIconEl = document.getElementById('upload-icon');
+        const uploadTextEl = document.getElementById('upload-text');
+        const avatarUploadEl = document.getElementById('avatar-upload');
+        const mainAvatarEl = document.getElementById('main-avatar');
+        const avatarImageEl = document.getElementById('avatar-image');
+        const lipSyncEl = document.getElementById('lip-sync');
+        const speakingIndicatorEl = document.getElementById('speaking-indicator');
+        const speechStatusEl = document.getElementById('speech-status');
+        const speakingTextEl = document.getElementById('speaking-text');
+        const speakBtn = document.getElementById('speak-btn');
+        const stopBtn = document.getElementById('stop-btn');
         
-        speakBtn.classList.add('hidden');
-        stopBtn.classList.remove('hidden');
-      };
-      
-      utterance.onend = () => {
-        isSpeaking = false;
-        highlightedText = fullText;
-        speechStatusEl.textContent = "Ready to speak";
-        mainAvatarEl.classList.remove('speaking');
-        speakingIndicatorEl.classList.remove('show');
-        lipSyncEl.className = 'lip-sync';
-        lipSyncState = "closed";
-        
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame);
-          animationFrame = null;
+        // Initialize both existing and new features
+        function init() {
+            // Existing init
+            clearCanvas();
+            updateTextOverlay();
+            updateGenerateButtonText();
+            
+            // Setup existing event listeners
+            generateBtn.addEventListener('click', handleGenerate);
+            downloadBtn.addEventListener('click', handleDownload);
+            shareBtn.addEventListener('click', handleShare);
+            
+            bgImageInput.addEventListener('change', handleBgImageUpload);
+            musicUploadInput.addEventListener('change', handleMusicUpload);
+            videoUploadInput.addEventListener('change', handleVideoUpload);
+            
+            [greetingNameInput, greetingProverbInput, bgColorInput, fontColorInput, 
+             fontFaceSelect, fontSizeSelect, isBoldCheckbox, isItalicCheckbox].forEach(el => {
+                el.addEventListener('input', debounce(() => {
+                    updatePreview();
+                    updateTextOverlay();
+                }, 300));
+            });
+            
+            // NEW: Initialize speaking avatar
+            selectedAvatar = DEFAULT_AVATARS[0];
+            avatarImageEl.src = selectedAvatar.image;
+            renderAvatarSelection();
+            setupSpeakingEventListeners();
+            
+            // Load voices
+            loadVoices();
         }
         
-        if (highlightInterval) {
-          clearInterval(highlightInterval);
-          highlightInterval = null;
+        // NEW: Load voices for speech synthesis
+        function loadVoices() {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.onvoiceschanged = loadVoices;
         }
         
-        updateTextDisplay();
-        speakBtn.classList.remove('hidden');
-        stopBtn.classList.add('hidden');
-      };
-      
-      utterance.onerror = () => {
-        isSpeaking = false;
-        speechStatusEl.textContent = "Error speaking";
-        mainAvatarEl.classList.remove('speaking');
-        speakingIndicatorEl.classList.remove('show');
-        lipSyncEl.className = 'lip-sync';
-        lipSyncState = "closed";
-        
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame);
-          animationFrame = null;
+        // NEW: Render avatar selection buttons
+        function renderAvatarSelection() {
+            avatarSelectionEl.innerHTML = '';
+            
+            DEFAULT_AVATARS.forEach(avatar => {
+                const button = document.createElement('button');
+                button.className = 'avatar-btn';
+                if (selectedAvatar?.id === avatar.id && avatarMode === "default") {
+                    button.classList.add('selected');
+                }
+                button.onclick = () => handleAvatarSelect(avatar);
+                
+                const img = document.createElement('img');
+                img.src = avatar.thumbnail;
+                img.alt = avatar.name;
+                img.className = 'avatar-thumb';
+                
+                const span = document.createElement('span');
+                span.className = 'avatar-name';
+                span.textContent = avatar.name;
+                
+                button.appendChild(img);
+                button.appendChild(span);
+                avatarSelectionEl.appendChild(button);
+            });
         }
         
-        if (highlightInterval) {
-          clearInterval(highlightInterval);
-          highlightInterval = null;
+        // NEW: Setup speaking event listeners
+        function setupSpeakingEventListeners() {
+            // Custom avatar upload
+            customUploadEl.addEventListener('click', () => {
+                avatarUploadEl.click();
+            });
+            
+            avatarUploadEl.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleCustomAvatarUpload(e.target.files[0]);
+                }
+            });
+            
+            // Speak button
+            speakBtn.addEventListener('click', speakGreeting);
+            
+            // Stop button
+            stopBtn.addEventListener('click', handleStop);
+            
+            // Drag and drop for custom upload
+            customUploadEl.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                customUploadEl.classList.add('active');
+            });
+            
+            customUploadEl.addEventListener('dragleave', () => {
+                customUploadEl.classList.remove('active');
+            });
+            
+            customUploadEl.addEventListener('drop', (e) => {
+                e.preventDefault();
+                customUploadEl.classList.remove('active');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    handleCustomAvatarUpload(e.dataTransfer.files[0]);
+                }
+            });
         }
         
-        speakBtn.classList.remove('hidden');
-        stopBtn.classList.add('hidden');
-      };
-      
-      // Start speaking
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // Animate lip sync
-    function animateLipSync() {
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const cycleDuration = 300;
-        const progress = (elapsed % cycleDuration) / cycleDuration;
-        
-        if (progress < 0.4) {
-          lipSyncEl.className = 'lip-sync open';
-          lipSyncState = "open";
-        } else if (progress < 0.8) {
-          lipSyncEl.className = 'lip-sync wide';
-          lipSyncState = "wide";
-        } else {
-          lipSyncEl.className = 'lip-sync';
-          lipSyncState = "closed";
+        // NEW: Handle avatar selection
+        function handleAvatarSelect(avatar) {
+            selectedAvatar = avatar;
+            avatarMode = "default";
+            customAvatar = null;
+            avatarImageEl.src = avatar.image;
+            renderAvatarSelection();
         }
         
-        if (isSpeaking) {
-          animationFrame = requestAnimationFrame(animate);
+        // NEW: Handle custom avatar upload
+        function handleCustomAvatarUpload(file) {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                customAvatar = e.target.result;
+                avatarMode = "custom";
+                selectedAvatar = {
+                    id: 5,
+                    name: "Custom Avatar",
+                    type: "custom",
+                    image: e.target.result,
+                    thumbnail: e.target.result
+                };
+                avatarImageEl.src = e.target.result;
+                renderAvatarSelection();
+                
+                uploadTextEl.textContent = 'Change Custom Avatar';
+                uploadIconEl.innerHTML = `<img src="${e.target.result}" alt="Custom Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
+            };
+            
+            reader.readAsDataURL(file);
         }
-      };
-      
-      animationFrame = requestAnimationFrame(animate);
-    }
-
-    // Start word highlighting
-    function startWordHighlighting(fullText) {
-      const words = fullText.split(/(\s+)/).filter(word => word.trim().length > 0);
-      let currentIndex = 0;
-      const start = Date.now();
-      const totalDuration = fullText.length * 100;
-      
-      highlightInterval = setInterval(() => {
-        const elapsed = Date.now() - start;
-        const progress = elapsed / totalDuration;
-        currentIndex = Math.min(Math.floor(progress * words.length), words.length - 1);
         
-        if (currentIndex >= 0) {
-          highlightedText = words.slice(0, currentIndex + 1).join(" ");
-          updateTextDisplay();
+        // NEW: Speak the greeting with lip sync and text highlighting
+        function speakGreeting() {
+            const name = greetingNameInput.value.trim();
+            const proverb = greetingProverbInput.value.trim();
+            
+            if (!name && !proverb) {
+                alert('Please enter greeting name or proverb');
+                return;
+            }
+            
+            if (!window.speechSynthesis || !selectedAvatar) return;
+            
+            // Cancel any ongoing speech
+            window.speechSynthesis.cancel();
+            
+            const fullText = name && proverb ? `${name}. ${proverb}` : name || proverb;
+            currentText = fullText;
+            highlightedText = "";
+            isSpeaking = true;
+            
+            // Create utterance
+            utterance = new SpeechSynthesisUtterance(fullText);
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            // Try to use a voice that matches the avatar type
+            const voices = window.speechSynthesis.getVoices();
+            let preferredVoice = null;
+            
+            if (selectedAvatar.type === "female") {
+                preferredVoice = voices.find(voice => 
+                    voice.name.toLowerCase().includes("female") || 
+                    voice.name.toLowerCase().includes("woman")
+                );
+            } else if (selectedAvatar.type === "male") {
+                preferredVoice = voices.find(voice => 
+                    voice.name.toLowerCase().includes("male") || 
+                    voice.name.toLowerCase().includes("man")
+                );
+            }
+            
+            if (!preferredVoice) {
+                preferredVoice = voices.find(voice => voice.default);
+            }
+            
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+            
+            // Setup event handlers
+            utterance.onstart = () => {
+                startTime = Date.now();
+                isSpeaking = true;
+                speechStatusEl.textContent = "Speaking...";
+                mainAvatarEl.classList.add('speaking');
+                speakingIndicatorEl.classList.add('show');
+                animateLipSync();
+                startWordHighlighting(fullText);
+                
+                speakBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+            };
+            
+            utterance.onend = () => {
+                isSpeaking = false;
+                highlightedText = fullText;
+                speechStatusEl.textContent = "Ready to speak";
+                mainAvatarEl.classList.remove('speaking');
+                speakingIndicatorEl.classList.remove('show');
+                lipSyncEl.className = 'lip-sync';
+                lipSyncState = "closed";
+                
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                    animationFrame = null;
+                }
+                
+                if (highlightInterval) {
+                    clearInterval(highlightInterval);
+                    highlightInterval = null;
+                }
+                
+                updateSpeakingTextDisplay();
+                speakBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+            };
+            
+            utterance.onerror = () => {
+                isSpeaking = false;
+                speechStatusEl.textContent = "Error speaking";
+                mainAvatarEl.classList.remove('speaking');
+                speakingIndicatorEl.classList.remove('show');
+                lipSyncEl.className = 'lip-sync';
+                lipSyncState = "closed";
+                
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                    animationFrame = null;
+                }
+                
+                if (highlightInterval) {
+                    clearInterval(highlightInterval);
+                    highlightInterval = null;
+                }
+                
+                speakBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+            };
+            
+            // Start speaking
+            window.speechSynthesis.speak(utterance);
         }
         
-        if (elapsed >= totalDuration) {
-          clearInterval(highlightInterval);
-          highlightedText = fullText;
-          updateTextDisplay();
+        // NEW: Animate lip sync
+        function animateLipSync() {
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const cycleDuration = 300;
+                const progress = (elapsed % cycleDuration) / cycleDuration;
+                
+                if (progress < 0.4) {
+                    lipSyncEl.className = 'lip-sync open';
+                    lipSyncState = "open";
+                } else if (progress < 0.8) {
+                    lipSyncEl.className = 'lip-sync wide';
+                    lipSyncState = "wide";
+                } else {
+                    lipSyncEl.className = 'lip-sync';
+                    lipSyncState = "closed";
+                }
+                
+                if (isSpeaking) {
+                    animationFrame = requestAnimationFrame(animate);
+                }
+            };
+            
+            animationFrame = requestAnimationFrame(animate);
         }
-      }, 200);
-    }
-
-    // Update text display with highlighting
-    function updateTextDisplay() {
-      if (!currentText) {
-        textDisplayEl.textContent = 'Select a greeting to begin';
-        return;
-      }
-      
-      if (!highlightedText) {
-        textDisplayEl.textContent = currentText;
-        return;
-      }
-      
-      const words = currentText.split(' ');
-      let html = '';
-      
-      words.forEach((word, index) => {
-        const wordWithSpace = index < words.length - 1 ? word + ' ' : word;
-        const isHighlighted = highlightedText.includes(wordWithSpace) || 
-                            highlightedText.endsWith(word);
         
-        const className = isHighlighted ? 'word highlight' : 'word';
-        html += `<span class="${className}">${wordWithSpace}</span>`;
-      });
-      
-      textDisplayEl.innerHTML = html;
-    }
-
-    // Handle greeting selection
-    function handleGreetingSelect(greeting, index) {
-      currentGreetingIndex = index;
-      speakGreeting(greeting);
-      
-      // Update selected greeting in UI
-      const buttons = greetingsListEl.querySelectorAll('.greeting-btn');
-      buttons.forEach((btn, i) => {
-        if (i === index) {
-          btn.classList.add('selected');
-        } else {
-          btn.classList.remove('selected');
+        // NEW: Start word highlighting
+        function startWordHighlighting(fullText) {
+            const words = fullText.split(/(\s+)/).filter(word => word.trim().length > 0);
+            const start = Date.now();
+            const totalDuration = fullText.length * 100;
+            
+            highlightInterval = setInterval(() => {
+                const elapsed = Date.now() - start;
+                const progress = elapsed / totalDuration;
+                const currentIndex = Math.min(Math.floor(progress * words.length), words.length - 1);
+                
+                if (currentIndex >= 0) {
+                    highlightedText = words.slice(0, currentIndex + 1).join(" ");
+                    updateSpeakingTextDisplay();
+                }
+                
+                if (elapsed >= totalDuration) {
+                    clearInterval(highlightInterval);
+                    highlightedText = fullText;
+                    updateSpeakingTextDisplay();
+                }
+            }, 200);
         }
-      });
-    }
-
-    // Stop speaking
-    function handleStop() {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-      isSpeaking = false;
-      highlightedText = "";
-      speechStatusEl.textContent = "Ready to speak";
-      mainAvatarEl.classList.remove('speaking');
-      speakingIndicatorEl.classList.remove('show');
-      lipSyncEl.className = 'lip-sync';
-      lipSyncState = "closed";
-      
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = null;
-      }
-      
-      if (highlightInterval) {
-        clearInterval(highlightInterval);
-        highlightInterval = null;
-      }
-      
-      updateTextDisplay();
-      speakBtn.classList.remove('hidden');
-      stopBtn.classList.add('hidden');
-    }
-
-    // Initialize the app when DOM is loaded
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+        
+        // NEW: Update speaking text display with highlighting
+        function updateSpeakingTextDisplay() {
+            if (!currentText) {
+                speakingTextEl.textContent = 'Enter greeting name and proverb, then click "Speak Greeting"';
+                return;
+            }
+            
+            if (!highlightedText) {
+                speakingTextEl.textContent = currentText;
+                return;
+            }
+            
+            const words = currentText.split(' ');
+            let html = '';
+            
+            words.forEach((word, index) => {
+                const wordWithSpace = index < words.length - 1 ? word + ' ' : word;
+                const isHighlighted = highlightedText.includes(wordWithSpace) || 
+                                    highlightedText.endsWith(word);
+                
+                const className = isHighlighted ? 'word highlight' : 'word';
+                html += `<span class="${className}">${wordWithSpace}</span>`;
+            });
+            
+            speakingTextEl.innerHTML = html;
+        }
+        
+        // NEW: Stop speaking
+        function handleStop() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            isSpeaking = false;
+            highlightedText = "";
+            speechStatusEl.textContent = "Ready to speak";
+            mainAvatarEl.classList.remove('speaking');
+            speakingIndicatorEl.classList.remove('show');
+            lipSyncEl.className = 'lip-sync';
+            lipSyncState = "closed";
+            
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            
+            if (highlightInterval) {
+                clearInterval(highlightInterval);
+                highlightInterval = null;
+            }
+            
+            updateSpeakingTextDisplay();
+            speakBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+        }
+        
+        // ========== EXISTING FUNCTIONS ==========
+        
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // Update text overlay with scrollable content
+        function updateTextOverlay() {
+            const name = greetingNameInput.value;
+            const proverb = greetingProverbInput.value;
+            const fontSize = parseInt(fontSizeSelect.value);
+            const fontFace = fontFaceSelect.value;
+            const isBold = isBoldCheckbox.checked;
+            const isItalic = isItalicCheckbox.checked;
+            const fontColor = fontColorInput.value;
+            
+            textContent.innerHTML = '';
+            
+            if (name || proverb) {
+                if (name) {
+                    const nameElement = document.createElement('div');
+                    nameElement.className = 'greeting-name';
+                    nameElement.textContent = name;
+                    nameElement.style.fontFamily = fontFace;
+                    nameElement.style.fontSize = `${fontSize * 1.5}px`;
+                    nameElement.style.color = fontColor;
+                    if (isBold) nameElement.style.fontWeight = 'bold';
+                    if (isItalic) nameElement.style.fontStyle = 'italic';
+                    textContent.appendChild(nameElement);
+                }
+                
+                if (proverb) {
+                    const proverbElement = document.createElement('div');
+                    proverbElement.className = 'greeting-proverb';
+                    proverbElement.textContent = proverb;
+                    proverbElement.style.fontFamily = fontFace;
+                    proverbElement.style.fontSize = `${fontSize}px`;
+                    proverbElement.style.color = fontColor;
+                    if (isBold) proverbElement.style.fontWeight = 'bold';
+                    if (isItalic) proverbElement.style.fontStyle = 'italic';
+                    textContent.appendChild(proverbElement);
+                }
+            }
+        }
+        
+        // Update button text based on uploaded media
+        function updateGenerateButtonText() {
+            const hasAudioOrVideo = uploadedMusic || uploadedVideo;
+            generateBtn.textContent = hasAudioOrVideo ? 'Generate Video Greeting' : 'Generate Image Greeting';
+        }
+        
+        // Clear canvas - ONLY draws background, NO TEXT (text is in overlay)
+        function clearCanvas() {
+            ctx.fillStyle = bgColorInput.value;
+            ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+            
+            // Draw background image if uploaded
+            if (bgImage && bgImage.complete) {
+                const ratio = Math.min(
+                    previewCanvas.width / bgImage.width,
+                    previewCanvas.height / bgImage.height
+                );
+                const newWidth = bgImage.width * ratio;
+                const newHeight = bgImage.height * ratio;
+                const x = (previewCanvas.width - newWidth) / 2;
+                const y = (previewCanvas.height - newHeight) / 2;
+                ctx.drawImage(bgImage, x, y, newWidth, newHeight);
+            }
+        }
+        
+        // Update preview - ONLY draws background, text is in overlay
+        function updatePreview() {
+            clearCanvas();
+        }
+        
+        // Word wrap text function for canvas
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let lineCount = 0;
+            
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + ' ';
+                const metrics = context.measureText(testLine);
+                if (metrics.width > maxWidth && i > 0) {
+                    context.fillText(line.trim(), x, y + (lineCount * lineHeight));
+                    line = words[i] + ' ';
+                    lineCount++;
+                } else {
+                    line = testLine;
+                }
+            }
+            
+            if (line.trim().length > 0) {
+                context.fillText(line.trim(), x, y + (lineCount * lineHeight));
+            }
+            
+            return lineCount;
+        }
+        
+        // Render canvas with text for IMAGE GENERATION ONLY
+        function renderCanvasForImage(name = '', proverb = '') {
+            clearCanvas();
+            
+            const fontSize = parseInt(fontSizeSelect.value);
+            const fontFace = fontFaceSelect.value;
+            const isBold = isBoldCheckbox.checked;
+            const isItalic = isItalicCheckbox.checked;
+            const fontColor = fontColorInput.value;
+            
+            ctx.fillStyle = fontColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const maxTextWidth = previewCanvas.width * 0.8;
+            const lineHeight = fontSize * 1.2;
+            
+            let currentY = previewCanvas.height / 3;
+            
+            // Draw greeting name with word wrapping
+            if (name) {
+                const nameFontSize = fontSize * 1.5;
+                let fontStyle = '';
+                if (isBold) fontStyle += 'bold ';
+                if (isItalic) fontStyle += 'italic ';
+                fontStyle += `${nameFontSize}px ${fontFace}`;
+                ctx.font = fontStyle;
+                
+                // Add black outline
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                
+                const nameLineCount = wrapText(ctx, name, previewCanvas.width / 2, currentY, maxTextWidth, lineHeight);
+                currentY += (nameLineCount + 1) * lineHeight;
+            }
+            
+            // Draw proverb with word wrapping
+            if (proverb) {
+                let fontStyle = '';
+                if (isBold) fontStyle += 'bold ';
+                if (isItalic) fontStyle += 'italic ';
+                fontStyle += `${fontSize}px ${fontFace}`;
+                ctx.font = fontStyle;
+                
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                
+                wrapText(ctx, proverb, previewCanvas.width / 2, currentY, maxTextWidth, lineHeight);
+            }
+        }
+        
+        // Handle background image upload
+        function handleBgImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                bgImage = new Image();
+                bgImage.onload = function() {
+                    updatePreview();
+                    updateMediaPreview();
+                };
+                bgImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Handle music upload
+        function handleMusicUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            uploadedMusic = URL.createObjectURL(file);
+            audioBlob = file;
+            
+            const audio = new Audio(uploadedMusic);
+            audio.addEventListener('loadedmetadata', () => {
+                audioDuration = audio.duration * 1000;
+            });
+            audio.addEventListener('error', () => {
+                console.error('Error loading audio metadata');
+            });
+            
+            updateMediaPreview();
+            updateGenerateButtonText();
+        }
+        
+        // Handle video upload
+        function handleVideoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            uploadedVideo = URL.createObjectURL(file);
+            videoBlob = file;
+            videoPreview.src = uploadedVideo;
+            videoPreview.classList.remove('hidden');
+            
+            const video = document.createElement('video');
+            video.src = uploadedVideo;
+            video.addEventListener('loadedmetadata', () => {
+                videoDuration = video.duration * 1000;
+            });
+            video.addEventListener('error', () => {
+                console.error('Error loading video metadata');
+            });
+            
+            updateMediaPreview();
+            updateGenerateButtonText();
+        }
+        
+        // Update media preview section with delete buttons
+        function updateMediaPreview() {
+            mediaPreviewContainer.innerHTML = '';
+            
+            const hasMedia = bgImage || uploadedMusic || uploadedVideo;
+            
+            if (!hasMedia) {
+                mediaPreviewContainer.innerHTML = '<p style="color: #888; font-size: 14px;">Uploaded media will appear here with delete options</p>';
+                return;
+            }
+            
+            if (bgImage) {
+                const imgElement = document.createElement('img');
+                imgElement.src = bgImage.src;
+                imgElement.style.maxWidth = '200px';
+                imgElement.style.maxHeight = '150px';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.title = 'Delete background image';
+                deleteBtn.onclick = () => {
+                    if (confirm('Delete this background image?')) {
+                        bgImage = null;
+                        bgImageInput.value = '';
+                        updatePreview();
+                        updateMediaPreview();
+                    }
+                };
+                
+                const mediaItem = document.createElement('div');
+                mediaItem.className = 'media-item';
+                mediaItem.appendChild(imgElement);
+                mediaItem.appendChild(deleteBtn);
+                
+                const info = document.createElement('div');
+                info.className = 'media-info';
+                info.textContent = 'Background Image';
+                mediaItem.appendChild(info);
+                
+                mediaPreviewContainer.appendChild(mediaItem);
+            }
+            
+            if (uploadedMusic) {
+                const audioElement = document.createElement('audio');
+                audioElement.src = uploadedMusic;
+                audioElement.controls = true;
+                audioElement.style.maxWidth = '200px';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.title = 'Delete music';
+                deleteBtn.onclick = () => {
+                    if (confirm('Delete this music?')) {
+                        uploadedMusic = null;
+                        audioBlob = null;
+                        audioDuration = 0;
+                        musicUploadInput.value = '';
+                        updateMediaPreview();
+                        updateGenerateButtonText();
+                    }
+                };
+                
+                const mediaItem = document.createElement('div');
+                mediaItem.className = 'media-item';
+                mediaItem.appendChild(audioElement);
+                mediaItem.appendChild(deleteBtn);
+                
+                const info = document.createElement('div');
+                info.className = 'media-info';
+                info.textContent = 'Music';
+                mediaItem.appendChild(info);
+                
+                mediaPreviewContainer.appendChild(mediaItem);
+            }
+            
+            if (uploadedVideo) {
+                const videoElement = document.createElement('video');
+                videoElement.src = uploadedVideo;
+                videoElement.controls = true;
+                videoElement.style.maxWidth = '200px';
+                videoElement.style.maxHeight = '150px';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.title = 'Delete video';
+                deleteBtn.onclick = () => {
+                    if (confirm('Delete this video?')) {
+                        uploadedVideo = null;
+                        videoBlob = null;
+                        videoDuration = 0;
+                        videoUploadInput.value = '';
+                        videoPreview.classList.add('hidden');
+                        updateMediaPreview();
+                        updateGenerateButtonText();
+                    }
+                };
+                
+                const mediaItem = document.createElement('div');
+                mediaItem.className = 'media-item';
+                mediaItem.appendChild(videoElement);
+                mediaItem.appendChild(deleteBtn);
+                
+                const info = document.createElement('div');
+                info.className = 'media-info';
+                info.textContent = 'Video';
+                mediaItem.appendChild(info);
+                
+                mediaPreviewContainer.appendChild(mediaItem);
+            }
+        }
+        
+        // Handle generate button click
+        async function handleGenerate() {
+            const name = greetingNameInput.value.trim();
+            const proverb = greetingProverbInput.value.trim();
+            
+            if (!name || !proverb) {
+                alert('Please enter both Greeting Name and Proverb');
+                return;
+            }
+            
+            const hasAudioOrVideo = uploadedMusic || uploadedVideo;
+            
+            if (hasAudioOrVideo) {
+                await generateVideoGreeting(name, proverb);
+            } else {
+                generateImageGreeting(name, proverb);
+            }
+        }
+        
+        // Generate image greeting
+        function generateImageGreeting(name, proverb) {
+            renderCanvasForImage(name, proverb);
+            
+            previewCanvas.toBlob((blob) => {
+                generatedBlob = blob;
+                generatedType = 'image';
+                downloadBtn.disabled = false;
+                shareBtn.disabled = false;
+                alert('Image greeting generated! Ready to download.');
+            }, 'image/jpeg', 0.92);
+        }
+        
+        // Generate WebM video with word wrapping
+        async function generateVideoGreeting(name, proverb) {
+            try {
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating... Please wait';
+                
+                const videoCanvas = document.createElement('canvas');
+                const videoCtx = videoCanvas.getContext('2d');
+                
+                let width = 800;
+                let height = 600;
+                
+                if (uploadedVideo) {
+                    const tempVideo = document.createElement('video');
+                    tempVideo.src = uploadedVideo;
+                    await new Promise((resolve, reject) => {
+                        tempVideo.onloadedmetadata = resolve;
+                        tempVideo.onerror = () => reject(new Error('Error loading video'));
+                    });
+                    width = tempVideo.videoWidth || 800;
+                    height = tempVideo.videoHeight || 600;
+                }
+                
+                videoCanvas.width = width;
+                videoCanvas.height = height;
+                
+                const videoElement = document.createElement('video');
+                videoElement.src = uploadedVideo || '';
+                videoElement.muted = true;
+                videoElement.loop = false;
+                videoElement.crossOrigin = 'anonymous';
+                
+                if (uploadedVideo) {
+                    await new Promise((resolve, reject) => {
+                        videoElement.onloadedmetadata = () => {
+                            videoDuration = videoElement.duration * 1000;
+                            resolve();
+                        };
+                        videoElement.onerror = () => reject(new Error('Error loading video'));
+                    });
+                }
+                
+                const audioElement = document.createElement('audio');
+                audioElement.src = uploadedMusic || '';
+                audioElement.crossOrigin = 'anonymous';
+                
+                if (uploadedMusic) {
+                    await new Promise((resolve, reject) => {
+                        audioElement.onloadedmetadata = () => {
+                            audioDuration = audioElement.duration * 1000;
+                            resolve();
+                        };
+                        audioElement.onerror = () => reject(new Error('Error loading audio'));
+                    });
+                }
+                
+                const totalDuration = Math.max(audioDuration, videoDuration, 5000);
+                const canvasStream = videoCanvas.captureStream(30);
+                
+                let finalStream = canvasStream;
+                
+                if (uploadedMusic) {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const mediaElementSource = audioContext.createMediaElementSource(audioElement);
+                    const audioDestination = audioContext.createMediaStreamDestination();
+                    mediaElementSource.connect(audioDestination);
+                    
+                    finalStream = new MediaStream([
+                        ...canvasStream.getVideoTracks(),
+                        ...audioDestination.stream.getAudioTracks()
+                    ]);
+                }
+                
+                const options = {
+                    mimeType: 'video/webm;codecs=vp9,opus',
+                    videoBitsPerSecond: 2500000,
+                    audioBitsPerSecond: 128000
+                };
+                
+                const mediaRecorder = new MediaRecorder(finalStream, options);
+                const chunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    generatedBlob = blob;
+                    generatedType = 'video';
+                    downloadBtn.disabled = false;
+                    shareBtn.disabled = false;
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = uploadedMusic || uploadedVideo ? 'Generate Video Greeting' : 'Generate Image Greeting';
+                    alert('Video generated! Ready to download.');
+                };
+                
+                mediaRecorder.onerror = (e) => {
+                    console.error('MediaRecorder error:', e);
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = uploadedMusic || uploadedVideo ? 'Generate Video Greeting' : 'Generate Image Greeting';
+                    alert('Error: ' + e.message);
+                };
+                
+                mediaRecorder.start();
+                
+                if (uploadedVideo) {
+                    try {
+                        await videoElement.play();
+                    } catch (e) {
+                        videoElement.muted = true;
+                        await videoElement.play();
+                    }
+                }
+                
+                if (uploadedMusic) {
+                    audioElement.volume = 1.0;
+                    try {
+                        await audioElement.play();
+                    } catch (e) {
+                        console.error('Audio error:', e);
+                    }
+                }
+                
+                let startTime = null;
+                let finished = false;
+                
+                const drawFrame = (timestamp) => {
+                    if (finished) return;
+                    
+                    if (!startTime) startTime = timestamp;
+                    const elapsed = timestamp - startTime;
+                    
+                    // Clear with background color
+                    videoCtx.fillStyle = bgColorInput.value;
+                    videoCtx.fillRect(0, 0, videoCanvas.width, videoCanvas.height);
+                    
+                    // Draw background image
+                    if (bgImage && bgImage.complete) {
+                        const ratio = Math.min(
+                            videoCanvas.width / bgImage.width,
+                            videoCanvas.height / bgImage.height
+                        );
+                        const newWidth = bgImage.width * ratio;
+                        const newHeight = bgImage.height * ratio;
+                        const x = (videoCanvas.width - newWidth) / 2;
+                        const y = (videoCanvas.height - newHeight) / 2;
+                        videoCtx.drawImage(bgImage, x, y, newWidth, newHeight);
+                    }
+                    
+                    // Draw video frame
+                    if (uploadedVideo && videoElement.readyState >= videoElement.HAVE_CURRENT_DATA) {
+                        videoCtx.drawImage(videoElement, 0, 0, videoCanvas.width, videoCanvas.height);
+                    }
+                    
+                    // Draw text with word wrapping
+                    const fontSize = parseInt(fontSizeSelect.value);
+                    const fontFace = fontFaceSelect.value;
+                    const isBold = isBoldCheckbox.checked;
+                    const isItalic = isItalicCheckbox.checked;
+                    const fontColor = fontColorInput.value;
+                    
+                    videoCtx.fillStyle = fontColor;
+                    videoCtx.textAlign = 'center';
+                    videoCtx.textBaseline = 'middle';
+                    
+                    const maxTextWidth = videoCanvas.width * 0.85;
+                    const lineHeight = fontSize * 1.3;
+                    
+                    let currentY = videoCanvas.height * 0.15; // Start higher to fit more text
+                    
+                    // Draw name with word wrapping
+                    if (name) {
+                        const nameFontSize = fontSize * 2.2;
+                        let fontStyle = '';
+                        if (isBold) fontStyle += 'bold ';
+                        if (isItalic) fontStyle += 'italic ';
+                        fontStyle += `${nameFontSize}px ${fontFace}`;
+                        videoCtx.font = fontStyle;
+                        
+                        // Black outline for visibility
+                        videoCtx.strokeStyle = '#000000';
+                        videoCtx.lineWidth = 6;
+                        videoCtx.strokeText(name, videoCanvas.width / 2, currentY);
+                        videoCtx.fillText(name, videoCanvas.width / 2, currentY);
+                        
+                        currentY += lineHeight * 1.5;
+                    }
+                    
+                    // Draw proverb with word wrapping
+                    if (proverb) {
+                        const proverbFontSize = fontSize * 1.6;
+                        let fontStyle = '';
+                        if (isBold) fontStyle += 'bold ';
+                        if (isItalic) fontStyle += 'italic ';
+                        fontStyle += `${proverbFontSize}px ${fontFace}`;
+                        videoCtx.font = fontStyle;
+                        
+                        videoCtx.strokeStyle = '#000000';
+                        videoCtx.lineWidth = 4;
+                        
+                        const lineCount = wrapText(videoCtx, proverb, videoCanvas.width / 2, currentY, maxTextWidth, lineHeight);
+                        currentY += (lineCount + 0.5) * lineHeight;
+                    }
+                    
+                    if (elapsed < totalDuration) {
+                        requestAnimationFrame(drawFrame);
+                    } else {
+                        finished = true;
+                        if (videoElement) videoElement.pause();
+                        if (audioElement) audioElement.pause();
+                        mediaRecorder.stop();
+                        generateBtn.disabled = false;
+                        generateBtn.textContent = uploadedMusic || uploadedVideo ? 'Generate Video Greeting' : 'Generate Image Greeting';
+                    }
+                };
+                
+                requestAnimationFrame(drawFrame);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                generateBtn.disabled = false;
+                generateBtn.textContent = uploadedMusic || uploadedVideo ? 'Generate Video Greeting' : 'Generate Image Greeting';
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // Handle download
+        function handleDownload() {
+            if (!generatedBlob) {
+                alert('Please generate a greeting first');
+                return;
+            }
+            
+            const url = URL.createObjectURL(generatedBlob);
+            const a = document.createElement('a');
+            a.download = generatedType === 'video' ? 'greeting.webm' : 'greeting.jpg';
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Handle share
+        async function handleShare() {
+            if (!generatedBlob) {
+                alert('Please generate a greeting first');
+                return;
+            }
+            
+            const name = greetingNameInput.value.trim();
+            const proverb = greetingProverbInput.value.trim();
+            
+            try {
+                const fileName = generatedType === 'video' ? 'greeting.webm' : 'greeting.jpg';
+                const file = new File([generatedBlob], fileName, {
+                    type: generatedType === 'video' ? 'video/webm' : 'image/jpeg'
+                });
+                
+                if (navigator.share) {
+                    await navigator.share({
+                        title: name,
+                        text: proverb,
+                        files: [file]
+                    });
+                } else {
+                    alert('Web Share API not supported. Use Download button.');
+                }
+            } catch (error) {
+                alert('Sharing failed. Use Download button.');
+            }
+        }
+        
+        // Initialize the app
+        init();
+    </script>
 </body>
 </html>
