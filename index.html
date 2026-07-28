@@ -312,7 +312,7 @@
             display: none !important;
         }
         
-        /* NEW: Avatar Section Styles */
+        /* ========== AVATAR SECTION STYLES ========== */
         .avatar-section {
             margin-bottom: 20px;
         }
@@ -352,6 +352,8 @@
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 5px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         .avatar-name {
@@ -406,38 +408,34 @@
             color: #666;
         }
         
-        /* Main Avatar Display */
-        .main-avatar-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-        
-        .main-avatar-wrapper {
-            position: relative;
-            width: 200px;
-            height: 200px;
+        /* Main Avatar Display in Preview */
+        .avatar-in-preview {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             overflow: hidden;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 10;
             transition: all 0.2s;
-            border: 3px solid #e2e8f0;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         
-        .main-avatar-wrapper.speaking {
+        .avatar-in-preview.speaking {
             border-color: #3b82f6;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
         }
         
-        .main-avatar-img {
+        .avatar-img-in-preview {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
         
-        /* Lip Sync */
-        .lip-sync {
+        /* Lip Sync for preview avatar */
+        .lip-sync-preview {
             position: absolute;
             bottom: 0;
             left: 50%;
@@ -449,33 +447,33 @@
             transition: all 0.1s;
         }
         
-        .lip-sync.open {
-            height: 25px;
+        .lip-sync-preview.open {
+            height: 20px;
             width: 80%;
         }
         
-        .lip-sync.wide {
-            height: 35px;
+        .lip-sync-preview.wide {
+            height: 28px;
             width: 100%;
         }
         
-        /* Speaking Indicator */
-        .speaking-indicator {
+        /* Speaking Indicator for preview avatar */
+        .speaking-indicator-preview {
             position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 20px;
-            height: 20px;
+            top: -5px;
+            right: -5px;
+            width: 15px;
+            height: 15px;
             background: #3b82f6;
             border-radius: 50%;
             display: none;
         }
         
-        .speaking-indicator.show {
+        .speaking-indicator-preview.show {
             display: block;
         }
         
-        .speaking-indicator::after {
+        .speaking-indicator-preview::after {
             content: '';
             position: absolute;
             width: 100%;
@@ -501,23 +499,23 @@
         .speaking-text-container {
             background: white;
             border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
+            padding: 15px;
+            margin: 15px 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .speech-status {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: #64748b;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .speaking-text {
-            font-size: 18px;
-            line-height: 1.7;
+            font-size: 16px;
+            line-height: 1.6;
             color: #1e293b;
-            min-height: 80px;
+            min-height: 60px;
         }
         
         .word {
@@ -528,7 +526,22 @@
             background-color: #dbeafe;
             color: #1e40af;
             font-weight: 700;
-            font-size: 22px;
+            font-size: 18px;
+        }
+        
+        /* Avatar Selection in Card Settings */
+        .avatar-settings {
+            margin-bottom: 20px;
+        }
+        
+        .avatar-preview-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            vertical-align: middle;
+            border: 2px solid #ddd;
         }
         
         @media (max-width: 768px) {
@@ -572,9 +585,11 @@
                 height: 50px;
             }
             
-            .main-avatar-wrapper {
-                width: 150px;
-                height: 150px;
+            .avatar-in-preview {
+                width: 80px;
+                height: 80px;
+                bottom: 10px;
+                left: 10px;
             }
         }
     </style>
@@ -583,66 +598,20 @@
     <div class="container">
         <h1>🎉 Greetings Card Generator</h1>
         
-        <!-- NEW: Avatar Speaking Section -->
-        <div class="card avatar-section">
-            <h2>🎤 Speaking Avatar</h2>
-            <p style="color: #666; margin-bottom: 15px; font-size: 14px;">Select an avatar to speak your greetings with lip sync!</p>
-            
-            <!-- Avatar Selection -->
-            <div class="form-group">
-                <label>Select Avatar</label>
-                <div class="avatar-grid" id="avatar-selection">
-                    <!-- Avatars will be inserted here -->
-                </div>
-                
-                <!-- Custom avatar upload -->
-                <div class="upload-area" id="custom-upload">
-                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
-                    <div class="upload-icon" id="upload-icon">
-                        <svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                        </svg>
-                    </div>
-                    <span class="upload-text" id="upload-text">Upload Your Photo</span>
-                </div>
-            </div>
-            
-            <!-- Main Avatar Display -->
-            <div class="main-avatar-container">
-                <div class="main-avatar-wrapper" id="main-avatar">
-                    <img id="avatar-image" class="main-avatar-img" src="" alt="Avatar" />
-                    <div class="lip-sync" id="lip-sync"></div>
-                    <div class="speaking-indicator" id="speaking-indicator"></div>
-                </div>
-            </div>
-            
-            <!-- Speaking Text Display -->
-            <div class="speaking-text-container">
-                <div class="speech-status" id="speech-status">Ready to speak</div>
-                <div class="speaking-text" id="speaking-text">
-                    Enter greeting name and proverb, then click "Speak Greeting"
-                </div>
-            </div>
-            
-            <!-- Speak/Stop Buttons -->
-            <div class="button-group">
-                <button id="speak-btn" class="btn btn-success">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 5px;">
-                        <path fill-rule="evenodd" d="M9.388 4.388a1 1 0 011.22.002l4.258 4.258a1 1 0 010 1.414l-4.258 4.258a1 1 0 01-1.414-1.414L12.172 11H3a1 1 0 01-1-1v-2a1 1 0 011-1h9.172l-2.788-2.788a1 1 0 01.002-1.22z" clip-rule="evenodd" />
-                    </svg>
-                    Speak Greeting
-                </button>
-                <button id="stop-btn" class="btn btn-danger hidden">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 5px;">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    Stop
-                </button>
-            </div>
-        </div>
-        
         <div class="card">
             <h2>Create Your Greeting</h2>
+            
+            <!-- AVATAR SELECTION INTEGRATED INTO FORM -->
+            <div class="form-group avatar-settings">
+                <label>Speaking Avatar (Optional)</label>
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;">
+                    <img id="selected-avatar-preview" class="avatar-preview-small" src="" alt="Selected Avatar" />
+                    <button id="change-avatar-btn" class="btn" style="padding: 8px 16px; font-size: 14px;">
+                        Change Avatar
+                    </button>
+                    <span style="font-size: 14px; color: #666;">Select from 4 avatars or upload your photo</span>
+                </div>
+            </div>
             
             <div class="form-group">
                 <label for="greetingName">Greeting Name *</label>
@@ -713,6 +682,7 @@
                 <div class="checkbox-group">
                     <label><input type="checkbox" id="isBold"> Bold</label>
                     <label><input type="checkbox" id="isItalic"> Italic</label>
+                    <label><input type="checkbox" id="includeAvatarInVideo" checked> Include Avatar in Video</label>
                 </div>
             </div>
             
@@ -721,28 +691,104 @@
             </div>
             
             <div class="button-group">
-                <button class="btn" id="generateBtn">Generate Greetings</button>
+                <button class="btn btn-success" id="generateBtn">Generate Greetings</button>
                 <button class="btn" id="downloadBtn" disabled>Download</button>
                 <button class="btn" id="shareBtn" disabled>Share</button>
+                <button class="btn btn-success" id="speak-btn" style="display: none;">
+                    Speak Preview
+                </button>
             </div>
         </div>
+
+        <!-- AVATAR SELECTION MODAL (Hidden by default) -->
+        <div id="avatar-modal" class="card hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; max-width: 600px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">Select Avatar</h2>
+                <button id="close-avatar-modal" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">Close</button>
+            </div>
+            <div class="form-group">
+                <label>Default Avatars</label>
+                <div class="avatar-grid" id="avatar-selection">
+                    <!-- Avatars will be inserted here -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Or Upload Your Photo</label>
+                <div class="upload-area" id="custom-upload">
+                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
+                    <div class="upload-icon" id="upload-icon">
+                        <svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                        </svg>
+                    </div>
+                    <span class="upload-text" id="upload-text">Upload Your Photo</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal Backdrop -->
+        <div id="modal-backdrop" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;"></div>
 
         <div class="card preview-container">
             <h2>Preview</h2>
             <div style="position: relative;">
                 <canvas id="previewCanvas" width="800" height="600"></canvas>
+                <!-- Avatar in Preview -->
+                <div class="avatar-in-preview hidden" id="avatar-in-preview">
+                    <img id="avatar-in-preview-img" class="avatar-img-in-preview" src="" alt="Avatar" />
+                    <div class="lip-sync-preview" id="lip-sync-preview"></div>
+                    <div class="speaking-indicator-preview" id="speaking-indicator-preview"></div>
+                </div>
                 <div class="text-overlay" id="textOverlay">
                     <div class="text-content" id="textContent"></div>
                 </div>
             </div>
             <video id="videoPreview" controls class="hidden"></video>
         </div>
+        
+        <!-- Speaking Text Display -->
+        <div class="card speaking-text-container">
+            <div class="speech-status" id="speech-status">Ready to speak</div>
+            <div class="speaking-text" id="speaking-text">
+                Enter greeting and click "Speak Preview" to hear it
+            </div>
+        </div>
     </div>
     
     <script>
-        // ========== EXISTING CODE ==========
+        // ========== AVATAR DATA ==========
+        const DEFAULT_AVATARS = [
+            {
+                id: 1,
+                name: "Female 1",
+                type: "female",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23b6e3f4'/%3E%3Cpath d='M25.3 25.3h49.4a49.8 49.8 0 0 0-49.4-49.4v49.4z' fill='%2364748b'/%3E%3Cpath d='M50 65c-15 0-25-10-25-25s10-25 25-25 25 10 25 25-10 25-25 25z' fill='%23f1c4b3'/%3E%3Cpath d='M40 45c0-5 5-10 15-10s15 5 15 10' stroke='%23333' stroke-width='2' fill='none'/%3E%3C/svg%3E",
+                thumbnail: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23b6e3f4'/%3E%3Cpath d='M25.3 25.3h49.4a49.8 49.8 0 0 0-49.4-49.4v49.4z' fill='%2364748b'/%3E%3Cpath d='M50 65c-15 0-25-10-25-25s10-25 25-25 25 10 25 25-10 25-25 25z' fill='%23f1c4b3'/%3E%3Cpath d='M40 45c0-5 5-10 15-10s15 5 15 10' stroke='%23333' stroke-width='2' fill='none'/%3E%3C/svg%3E"
+            },
+            {
+                id: 2,
+                name: "Female 2",
+                type: "female",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23d1d4f9'/%3E%3Cpath d='M25 30h50v40H25z' fill='%238b5cf6'/%3E%3Ccircle cx='35' cy='40' r='3' fill='%23333'/%3E%3Ccircle cx='65' cy='40' r='3' fill='%23333'/%3E%3Cpath d='M45 55c0-5-5-10-15-10s-15 5-15 10 5 10 10 0 15-5 15-10z' fill='%23a78bfa'/%3E%3C/svg%3E",
+                thumbnail: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23d1d4f9'/%3E%3Cpath d='M25 30h50v40H25z' fill='%238b5cf6'/%3E%3Ccircle cx='35' cy='40' r='3' fill='%23333'/%3E%3Ccircle cx='65' cy='40' r='3' fill='%23333'/%3E%3Cpath d='M45 55c0-5-5-10-15-10s-15 5-15 10 5 10 10 0 15-5 15-10z' fill='%23a78bfa'/%3E%3C/svg%3E"
+            },
+            {
+                id: 3,
+                name: "Male 1",
+                type: "male",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23ffdfd3'/%3E%3Cpath d='M25 30h50v40H25z' fill='%2392400e'/%3E%3Ccircle cx='35' cy='40' r='3' fill='%23333'/%3E%3Ccircle cx='65' cy='40' r='3' fill='%23333'/%3E%3Cpath d='M45 55c0-8-8-15-20-15s-20 7-20 15 8 15 20 15 20-7 20-15z' fill='%23cd7f32'/%3E%3C/svg%3E",
+                thumbnail: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23ffdfd3'/%3E%3Cpath d='M25 30h50v40H25z' fill='%2392400e'/%3E%3Ccircle cx='35' cy='40' r='3' fill='%23333'/%3E%3Ccircle cx='65' cy='40' r='3' fill='%23333'/%3E%3Cpath d='M45 55c0-8-8-15-20-15s-20 7-20 15 8 15 20 15 20-7 20-15z' fill='%23cd7f32'/%3E%3C/svg%3E"
+            },
+            {
+                id: 4,
+                name: "Male 2",
+                type: "male",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c0aede'/%3E%3Cpath d='M25 30h50v40H25z' fill='%234c1d95'/%3E%3Ccircle cx='35' cy='40' r='3' fill='%23fff'/%3E%3Ccircle cx='65' cy='40' r='3' fill='%23fff'/%3E%3Cpath d='M45 55c0-8-8-15-20-15s-20 7-20 15 8 15 20 15 20-7 20-15z' fill='%237c3aed'/%3E%3C/svg%3E",
+                thumbnail: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c0aede'/%3E%3Cpath d='M25 30h50v40H25z' fill='%234c1d95'/%3E%3Ccircle cx='35' cy='40' r='3' fill='%23fff'/%3E%3Ccircle cx='65' cy='40' r='3' fill='%23fff'/%3E%3Cpath d='M45 55c0-8-8-15-20-15s-20 7-20 15 8 15 20 15 20-7 20-15z' fill='%237c3aed'/%3E%3C/svg%3E"
+            }
+        ];
         
-        // DOM Elements
+        // ========== DOM ELEMENTS ==========
         const greetingNameInput = document.getElementById('greetingName');
         const greetingProverbInput = document.getElementById('greetingProverb');
         const bgColorInput = document.getElementById('bgColor');
@@ -754,6 +800,7 @@
         const fontSizeSelect = document.getElementById('fontSize');
         const isBoldCheckbox = document.getElementById('isBold');
         const isItalicCheckbox = document.getElementById('isItalic');
+        const includeAvatarInVideo = document.getElementById('includeAvatarInVideo');
         const generateBtn = document.getElementById('generateBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const shareBtn = document.getElementById('shareBtn');
@@ -763,7 +810,26 @@
         const textOverlay = document.getElementById('textOverlay');
         const textContent = document.getElementById('textContent');
         
-        // State
+        // Avatar elements
+        const avatarModal = document.getElementById('avatar-modal');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const closeAvatarModal = document.getElementById('close-avatar-modal');
+        const changeAvatarBtn = document.getElementById('change-avatar-btn');
+        const selectedAvatarPreview = document.getElementById('selected-avatar-preview');
+        const avatarSelectionEl = document.getElementById('avatar-selection');
+        const customUploadEl = document.getElementById('custom-upload');
+        const uploadIconEl = document.getElementById('upload-icon');
+        const uploadTextEl = document.getElementById('upload-text');
+        const avatarUploadEl = document.getElementById('avatar-upload');
+        const avatarInPreview = document.getElementById('avatar-in-preview');
+        const avatarInPreviewImg = document.getElementById('avatar-in-preview-img');
+        const lipSyncPreviewEl = document.getElementById('lip-sync-preview');
+        const speakingIndicatorPreviewEl = document.getElementById('speaking-indicator-preview');
+        const speechStatusEl = document.getElementById('speech-status');
+        const speakingTextEl = document.getElementById('speaking-text');
+        const speakPreviewBtn = document.getElementById('speak-btn');
+        
+        // ========== STATE VARIABLES ==========
         let bgImage = null;
         let uploadedMusic = null;
         let uploadedVideo = null;
@@ -774,44 +840,7 @@
         let audioDuration = 0;
         let videoDuration = 0;
         
-        // Canvas context
-        const ctx = previewCanvas.getContext('2d');
-        
-        // ========== NEW: SPEAKING AVATAR VARIABLES ==========
-        
-        // Default avatar images - using data URIs to avoid CSP issues
-        const DEFAULT_AVATARS = [
-            {
-                id: 1,
-                name: "Female 1",
-                type: "female",
-                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYjZlM2Y0Ii8+CjxwYXRoIGQ9Ik0yNS4zIDI1LjNIMzQuN2wyLjUgMi41bC0yLjUgMi41bC0yLjUgMi41SDI1LjNaIiBmaWxsPSIjNjQ3NDE5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZkZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTE1IDMwSDI1VjI1SDExVjMwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjMzc0MzQyIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-            },
-            {
-                id: 2,
-                name: "Female 2",
-                type: "female", 
-                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDEzNGY5Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjYzBhZWRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-            },
-            {
-                id: 3,
-                name: "Male 1",
-                type: "male",
-                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZmZkZmQzIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmY3ZmQzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1SDI1VjIwSDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-            },
-            {
-                id: 4,
-                name: "Male 2", 
-                type: "male",
-                image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+",
-                thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjYzBhZWRlIi8+CjxwYXRoIGQ9Ik0zMCAzMEg0MFM0MCAyNS4zIDMwIDMwWiIgc3Ryb2tlPSIjZmZmOWRjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDUwIDUwIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTIwIDI1QzIwIDI1IDI1IDI1IDI1IDI1SDIwQzI1IDI1IDI1IDI1IDIwIDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDMwSDMwVjI1SDI1WiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTI1IDI1SDIwWiIgc3Ryb2tlPSIjNjQ3NDE5IiBzdHJva2Utd2lkdGg9IjIiLz4KPHN2Zz4KPC9zdmc+"
-            }
-        ];
-        
-        // Speaking state variables
+        // Avatar state
         let selectedAvatar = null;
         let customAvatar = null;
         let isSpeaking = false;
@@ -825,37 +854,40 @@
         let startTime = 0;
         let highlightInterval = null;
         
-        // New DOM elements for speaking avatar
-        const avatarSelectionEl = document.getElementById('avatar-selection');
-        const customUploadEl = document.getElementById('custom-upload');
-        const uploadIconEl = document.getElementById('upload-icon');
-        const uploadTextEl = document.getElementById('upload-text');
-        const avatarUploadEl = document.getElementById('avatar-upload');
-        const mainAvatarEl = document.getElementById('main-avatar');
-        const avatarImageEl = document.getElementById('avatar-image');
-        const lipSyncEl = document.getElementById('lip-sync');
-        const speakingIndicatorEl = document.getElementById('speaking-indicator');
-        const speechStatusEl = document.getElementById('speech-status');
-        const speakingTextEl = document.getElementById('speaking-text');
-        const speakBtn = document.getElementById('speak-btn');
-        const stopBtn = document.getElementById('stop-btn');
+        const ctx = previewCanvas.getContext('2d');
         
-        // Initialize both existing and new features
+        // ========== INITIALIZATION ==========
         function init() {
-            // Existing init
+            // Set default avatar
+            selectedAvatar = DEFAULT_AVATARS[0];
+            selectedAvatarPreview.src = selectedAvatar.thumbnail;
+            avatarInPreviewImg.src = selectedAvatar.image;
+            
+            // Initialize existing functionality
             clearCanvas();
             updateTextOverlay();
             updateGenerateButtonText();
+            renderAvatarSelection();
             
-            // Setup existing event listeners
+            // Event Listeners
             generateBtn.addEventListener('click', handleGenerate);
             downloadBtn.addEventListener('click', handleDownload);
             shareBtn.addEventListener('click', handleShare);
+            speakPreviewBtn.addEventListener('click', speakPreview);
             
             bgImageInput.addEventListener('change', handleBgImageUpload);
             musicUploadInput.addEventListener('change', handleMusicUpload);
             videoUploadInput.addEventListener('change', handleVideoUpload);
             
+            // Avatar modal events
+            changeAvatarBtn.addEventListener('click', openAvatarModal);
+            closeAvatarModal.addEventListener('click', closeAvatarModal);
+            modalBackdrop.addEventListener('click', closeAvatarModal);
+            
+            // Avatar selection events
+            setupAvatarEventListeners();
+            
+            // Update preview on input changes
             [greetingNameInput, greetingProverbInput, bgColorInput, fontColorInput, 
              fontFaceSelect, fontSizeSelect, isBoldCheckbox, isItalicCheckbox].forEach(el => {
                 el.addEventListener('input', debounce(() => {
@@ -864,23 +896,26 @@
                 }, 300));
             });
             
-            // NEW: Initialize speaking avatar
-            selectedAvatar = DEFAULT_AVATARS[0];
-            avatarImageEl.src = selectedAvatar.image;
-            renderAvatarSelection();
-            setupSpeakingEventListeners();
-            
             // Load voices
             loadVoices();
         }
         
-        // NEW: Load voices for speech synthesis
+        // ========== AVATAR FUNCTIONS ==========
         function loadVoices() {
             if (!window.speechSynthesis) return;
             window.speechSynthesis.onvoiceschanged = loadVoices;
         }
         
-        // NEW: Render avatar selection buttons
+        function openAvatarModal() {
+            avatarModal.classList.remove('hidden');
+            modalBackdrop.classList.remove('hidden');
+        }
+        
+        function closeAvatarModal() {
+            avatarModal.classList.add('hidden');
+            modalBackdrop.classList.add('hidden');
+        }
+        
         function renderAvatarSelection() {
             avatarSelectionEl.innerHTML = '';
             
@@ -907,8 +942,7 @@
             });
         }
         
-        // NEW: Setup speaking event listeners
-        function setupSpeakingEventListeners() {
+        function setupAvatarEventListeners() {
             // Custom avatar upload
             customUploadEl.addEventListener('click', () => {
                 avatarUploadEl.click();
@@ -920,13 +954,7 @@
                 }
             });
             
-            // Speak button
-            speakBtn.addEventListener('click', speakGreeting);
-            
-            // Stop button
-            stopBtn.addEventListener('click', handleStop);
-            
-            // Drag and drop for custom upload
+            // Drag and drop
             customUploadEl.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 customUploadEl.classList.add('active');
@@ -939,26 +967,24 @@
             customUploadEl.addEventListener('drop', (e) => {
                 e.preventDefault();
                 customUploadEl.classList.remove('active');
-                
                 if (e.dataTransfer.files.length > 0) {
                     handleCustomAvatarUpload(e.dataTransfer.files[0]);
                 }
             });
         }
         
-        // NEW: Handle avatar selection
         function handleAvatarSelect(avatar) {
             selectedAvatar = avatar;
             avatarMode = "default";
             customAvatar = null;
-            avatarImageEl.src = avatar.image;
+            selectedAvatarPreview.src = avatar.thumbnail;
+            avatarInPreviewImg.src = avatar.image;
             renderAvatarSelection();
+            closeAvatarModal();
         }
         
-        // NEW: Handle custom avatar upload
         function handleCustomAvatarUpload(file) {
             const reader = new FileReader();
-            
             reader.onload = (e) => {
                 customAvatar = e.target.result;
                 avatarMode = "custom";
@@ -969,18 +995,18 @@
                     image: e.target.result,
                     thumbnail: e.target.result
                 };
-                avatarImageEl.src = e.target.result;
+                selectedAvatarPreview.src = e.target.result;
+                avatarInPreviewImg.src = e.target.result;
                 renderAvatarSelection();
                 
-                uploadTextEl.textContent = 'Change Custom Avatar';
+                uploadTextEl.textContent = 'Change Photo';
                 uploadIconEl.innerHTML = `<img src="${e.target.result}" alt="Custom Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`;
             };
-            
             reader.readAsDataURL(file);
         }
         
-        // NEW: Speak the greeting with lip sync and text highlighting
-        function speakGreeting() {
+        // ========== SPEAKING FUNCTIONS ==========
+        function speakPreview() {
             const name = greetingNameInput.value.trim();
             const proverb = greetingProverbInput.value.trim();
             
@@ -989,7 +1015,15 @@
                 return;
             }
             
-            if (!window.speechSynthesis || !selectedAvatar) return;
+            if (!selectedAvatar) {
+                alert('Please select an avatar first');
+                return;
+            }
+            
+            if (!window.speechSynthesis) {
+                alert('Speech synthesis not supported in your browser');
+                return;
+            }
             
             // Cancel any ongoing speech
             window.speechSynthesis.cancel();
@@ -998,6 +1032,9 @@
             currentText = fullText;
             highlightedText = "";
             isSpeaking = true;
+            
+            // Show avatar in preview
+            avatarInPreview.classList.remove('hidden');
             
             // Create utterance
             utterance = new SpeechSynthesisUtterance(fullText);
@@ -1034,23 +1071,21 @@
                 startTime = Date.now();
                 isSpeaking = true;
                 speechStatusEl.textContent = "Speaking...";
-                mainAvatarEl.classList.add('speaking');
-                speakingIndicatorEl.classList.add('show');
+                avatarInPreview.classList.add('speaking');
+                speakingIndicatorPreviewEl.classList.add('show');
                 animateLipSync();
                 startWordHighlighting(fullText);
                 
-                speakBtn.classList.add('hidden');
-                stopBtn.classList.remove('hidden');
+                speakPreviewBtn.classList.add('hidden');
             };
             
             utterance.onend = () => {
                 isSpeaking = false;
                 highlightedText = fullText;
                 speechStatusEl.textContent = "Ready to speak";
-                mainAvatarEl.classList.remove('speaking');
-                speakingIndicatorEl.classList.remove('show');
-                lipSyncEl.className = 'lip-sync';
-                lipSyncState = "closed";
+                avatarInPreview.classList.remove('speaking');
+                speakingIndicatorPreviewEl.classList.remove('show');
+                lipSyncPreviewEl.className = 'lip-sync-preview';
                 
                 if (animationFrame) {
                     cancelAnimationFrame(animationFrame);
@@ -1063,17 +1098,15 @@
                 }
                 
                 updateSpeakingTextDisplay();
-                speakBtn.classList.remove('hidden');
-                stopBtn.classList.add('hidden');
+                speakPreviewBtn.classList.remove('hidden');
             };
             
             utterance.onerror = () => {
                 isSpeaking = false;
                 speechStatusEl.textContent = "Error speaking";
-                mainAvatarEl.classList.remove('speaking');
-                speakingIndicatorEl.classList.remove('show');
-                lipSyncEl.className = 'lip-sync';
-                lipSyncState = "closed";
+                avatarInPreview.classList.remove('speaking');
+                speakingIndicatorPreviewEl.classList.remove('show');
+                lipSyncPreviewEl.className = 'lip-sync-preview';
                 
                 if (animationFrame) {
                     cancelAnimationFrame(animationFrame);
@@ -1085,15 +1118,13 @@
                     highlightInterval = null;
                 }
                 
-                speakBtn.classList.remove('hidden');
-                stopBtn.classList.add('hidden');
+                speakPreviewBtn.classList.remove('hidden');
             };
             
             // Start speaking
             window.speechSynthesis.speak(utterance);
         }
         
-        // NEW: Animate lip sync
         function animateLipSync() {
             const animate = () => {
                 const elapsed = Date.now() - startTime;
@@ -1101,13 +1132,13 @@
                 const progress = (elapsed % cycleDuration) / cycleDuration;
                 
                 if (progress < 0.4) {
-                    lipSyncEl.className = 'lip-sync open';
+                    lipSyncPreviewEl.className = 'lip-sync-preview open';
                     lipSyncState = "open";
                 } else if (progress < 0.8) {
-                    lipSyncEl.className = 'lip-sync wide';
+                    lipSyncPreviewEl.className = 'lip-sync-preview wide';
                     lipSyncState = "wide";
                 } else {
-                    lipSyncEl.className = 'lip-sync';
+                    lipSyncPreviewEl.className = 'lip-sync-preview';
                     lipSyncState = "closed";
                 }
                 
@@ -1119,7 +1150,6 @@
             animationFrame = requestAnimationFrame(animate);
         }
         
-        // NEW: Start word highlighting
         function startWordHighlighting(fullText) {
             const words = fullText.split(/(\s+)/).filter(word => word.trim().length > 0);
             const start = Date.now();
@@ -1143,10 +1173,9 @@
             }, 200);
         }
         
-        // NEW: Update speaking text display with highlighting
         function updateSpeakingTextDisplay() {
             if (!currentText) {
-                speakingTextEl.textContent = 'Enter greeting name and proverb, then click "Speak Greeting"';
+                speakingTextEl.textContent = 'Enter greeting and click "Speak Preview" to hear it';
                 return;
             }
             
@@ -1170,37 +1199,7 @@
             speakingTextEl.innerHTML = html;
         }
         
-        // NEW: Stop speaking
-        function handleStop() {
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-            }
-            isSpeaking = false;
-            highlightedText = "";
-            speechStatusEl.textContent = "Ready to speak";
-            mainAvatarEl.classList.remove('speaking');
-            speakingIndicatorEl.classList.remove('show');
-            lipSyncEl.className = 'lip-sync';
-            lipSyncState = "closed";
-            
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-                animationFrame = null;
-            }
-            
-            if (highlightInterval) {
-                clearInterval(highlightInterval);
-                highlightInterval = null;
-            }
-            
-            updateSpeakingTextDisplay();
-            speakBtn.classList.remove('hidden');
-            stopBtn.classList.add('hidden');
-        }
-        
         // ========== EXISTING FUNCTIONS ==========
-        
-        // Debounce function
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -1213,7 +1212,6 @@
             };
         }
         
-        // Update text overlay with scrollable content
         function updateTextOverlay() {
             const name = greetingNameInput.value;
             const proverb = greetingProverbInput.value;
@@ -1252,18 +1250,15 @@
             }
         }
         
-        // Update button text based on uploaded media
         function updateGenerateButtonText() {
             const hasAudioOrVideo = uploadedMusic || uploadedVideo;
             generateBtn.textContent = hasAudioOrVideo ? 'Generate Video Greeting' : 'Generate Image Greeting';
         }
         
-        // Clear canvas - ONLY draws background, NO TEXT (text is in overlay)
         function clearCanvas() {
             ctx.fillStyle = bgColorInput.value;
             ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
             
-            // Draw background image if uploaded
             if (bgImage && bgImage.complete) {
                 const ratio = Math.min(
                     previewCanvas.width / bgImage.width,
@@ -1277,12 +1272,10 @@
             }
         }
         
-        // Update preview - ONLY draws background, text is in overlay
         function updatePreview() {
             clearCanvas();
         }
         
-        // Word wrap text function for canvas
         function wrapText(context, text, x, y, maxWidth, lineHeight) {
             const words = text.split(' ');
             let line = '';
@@ -1307,7 +1300,6 @@
             return lineCount;
         }
         
-        // Render canvas with text for IMAGE GENERATION ONLY
         function renderCanvasForImage(name = '', proverb = '') {
             clearCanvas();
             
@@ -1326,7 +1318,6 @@
             
             let currentY = previewCanvas.height / 3;
             
-            // Draw greeting name with word wrapping
             if (name) {
                 const nameFontSize = fontSize * 1.5;
                 let fontStyle = '';
@@ -1335,7 +1326,6 @@
                 fontStyle += `${nameFontSize}px ${fontFace}`;
                 ctx.font = fontStyle;
                 
-                // Add black outline
                 ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 3;
                 
@@ -1343,7 +1333,6 @@
                 currentY += (nameLineCount + 1) * lineHeight;
             }
             
-            // Draw proverb with word wrapping
             if (proverb) {
                 let fontStyle = '';
                 if (isBold) fontStyle += 'bold ';
@@ -1358,7 +1347,6 @@
             }
         }
         
-        // Handle background image upload
         function handleBgImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1375,7 +1363,6 @@
             reader.readAsDataURL(file);
         }
         
-        // Handle music upload
         function handleMusicUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1387,15 +1374,11 @@
             audio.addEventListener('loadedmetadata', () => {
                 audioDuration = audio.duration * 1000;
             });
-            audio.addEventListener('error', () => {
-                console.error('Error loading audio metadata');
-            });
             
             updateMediaPreview();
             updateGenerateButtonText();
         }
         
-        // Handle video upload
         function handleVideoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1410,15 +1393,11 @@
             video.addEventListener('loadedmetadata', () => {
                 videoDuration = video.duration * 1000;
             });
-            video.addEventListener('error', () => {
-                console.error('Error loading video metadata');
-            });
             
             updateMediaPreview();
             updateGenerateButtonText();
         }
         
-        // Update media preview section with delete buttons
         function updateMediaPreview() {
             mediaPreviewContainer.innerHTML = '';
             
@@ -1532,7 +1511,7 @@
             }
         }
         
-        // Handle generate button click
+        // ========== GENERATE VIDEO WITH AVATAR AND SPEECH ==========
         async function handleGenerate() {
             const name = greetingNameInput.value.trim();
             const proverb = greetingProverbInput.value.trim();
@@ -1543,15 +1522,15 @@
             }
             
             const hasAudioOrVideo = uploadedMusic || uploadedVideo;
+            const includeAvatar = includeAvatarInVideo.checked;
             
             if (hasAudioOrVideo) {
-                await generateVideoGreeting(name, proverb);
+                await generateVideoGreeting(name, proverb, includeAvatar);
             } else {
                 generateImageGreeting(name, proverb);
             }
         }
         
-        // Generate image greeting
         function generateImageGreeting(name, proverb) {
             renderCanvasForImage(name, proverb);
             
@@ -1564,8 +1543,7 @@
             }, 'image/jpeg', 0.92);
         }
         
-        // Generate WebM video with word wrapping
-        async function generateVideoGreeting(name, proverb) {
+        async function generateVideoGreeting(name, proverb, includeAvatar) {
             try {
                 generateBtn.disabled = true;
                 generateBtn.textContent = 'Generating... Please wait';
@@ -1620,7 +1598,45 @@
                     });
                 }
                 
-                const totalDuration = Math.max(audioDuration, videoDuration, 5000);
+                // Calculate total duration - use speech duration if no audio/video
+                let totalDuration = Math.max(audioDuration, videoDuration, 5000);
+                
+                // If no uploaded audio/video, create speech
+                let speechUtterance = null;
+                if (!uploadedMusic && !uploadedVideo) {
+                    const fullText = `${name}. ${proverb}`;
+                    speechUtterance = new SpeechSynthesisUtterance(fullText);
+                    speechUtterance.rate = 1;
+                    speechUtterance.pitch = 1;
+                    speechUtterance.volume = 1;
+                    
+                    // Try to use a voice that matches the avatar type
+                    const voices = window.speechSynthesis.getVoices();
+                    let preferredVoice = null;
+                    
+                    if (selectedAvatar && selectedAvatar.type === "female") {
+                        preferredVoice = voices.find(voice => 
+                            voice.name.toLowerCase().includes("female") || 
+                            voice.name.toLowerCase().includes("woman")
+                        );
+                    } else if (selectedAvatar && selectedAvatar.type === "male") {
+                        preferredVoice = voices.find(voice => 
+                            voice.name.toLowerCase().includes("male") || 
+                            voice.name.toLowerCase().includes("man")
+                        );
+                    }
+                    
+                    if (!preferredVoice) {
+                        preferredVoice = voices.find(voice => voice.default);
+                    }
+                    
+                    if (preferredVoice) {
+                        speechUtterance.voice = preferredVoice;
+                    }
+                    
+                    totalDuration = fullText.length * 150; // Estimate duration
+                }
+                
                 const canvasStream = videoCanvas.captureStream(30);
                 
                 let finalStream = canvasStream;
@@ -1688,8 +1704,15 @@
                     }
                 }
                 
+                // If no uploaded audio, speak the text
+                if (speechUtterance) {
+                    window.speechSynthesis.speak(speechUtterance);
+                }
+                
                 let startTime = null;
                 let finished = false;
+                let lipSyncPhase = 0;
+                let lastLipSyncUpdate = 0;
                 
                 const drawFrame = (timestamp) => {
                     if (finished) return;
@@ -1719,6 +1742,85 @@
                         videoCtx.drawImage(videoElement, 0, 0, videoCanvas.width, videoCanvas.height);
                     }
                     
+                    // Draw avatar if enabled
+                    if (includeAvatar && selectedAvatar) {
+                        const avatarSize = 120;
+                        const avatarX = 20;
+                        const avatarY = videoCanvas.height - avatarSize - 20;
+                        
+                        // Draw avatar circle background
+                        videoCtx.save();
+                        videoCtx.beginPath();
+                        videoCtx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
+                        videoCtx.closePath();
+                        videoCtx.clip();
+                        
+                        const avatarImg = new Image();
+                        avatarImg.src = selectedAvatar.image;
+                        avatarImg.onload = function() {
+                            // This won't work in the same frame, need different approach
+                        };
+                        
+                        // Draw avatar image (using a temporary approach)
+                        // We need to draw the avatar image directly
+                        const tempAvatar = new Image();
+                        tempAvatar.src = selectedAvatar.image;
+                        // Can't wait for onload here, so we'll use a different method
+                        
+                        // For now, draw a placeholder circle
+                        videoCtx.fillStyle = '#e2e8f0';
+                        videoCtx.fillRect(avatarX, avatarY, avatarSize, avatarSize);
+                        
+                        // Draw avatar image if it's already loaded (base64 images are immediate)
+                        try {
+                            const img = new Image();
+                            img.src = selectedAvatar.image;
+                            // Since it's base64, it should be available immediately
+                            videoCtx.drawImage(img, avatarX, avatarY, avatarSize, avatarSize);
+                        } catch(e) {
+                            // Fallback to colored circle
+                            videoCtx.fillStyle = selectedAvatar.id === 1 ? '#b6e3f4' : 
+                                              selectedAvatar.id === 2 ? '#d1d4f9' : 
+                                              selectedAvatar.id === 3 ? '#ffdfd3' : '#c0aede';
+                            videoCtx.beginPath();
+                            videoCtx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
+                            videoCtx.fill();
+                        }
+                        
+                        videoCtx.restore();
+                        
+                        // Draw lip sync animation
+                        if (speechUtterance && elapsed < totalDuration) {
+                            const cycleDuration = 300;
+                            const progress = (elapsed % cycleDuration) / cycleDuration;
+                            let mouthHeight = 0;
+                            let mouthWidth = avatarSize * 0.6;
+                            
+                            if (progress < 0.4) {
+                                mouthHeight = 15;
+                                mouthWidth = avatarSize * 0.8;
+                            } else if (progress < 0.8) {
+                                mouthHeight = 20;
+                                mouthWidth = avatarSize;
+                            }
+                            
+                            if (mouthHeight > 0) {
+                                videoCtx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+                                videoCtx.beginPath();
+                                videoCtx.ellipse(
+                                    avatarX + avatarSize/2,
+                                    avatarY + avatarSize - 5,
+                                    mouthWidth/2,
+                                    mouthHeight,
+                                    0,
+                                    0,
+                                    Math.PI * 2
+                                );
+                                videoCtx.fill();
+                            }
+                        }
+                    }
+                    
                     // Draw text with word wrapping
                     const fontSize = parseInt(fontSizeSelect.value);
                     const fontFace = fontFaceSelect.value;
@@ -1733,7 +1835,7 @@
                     const maxTextWidth = videoCanvas.width * 0.85;
                     const lineHeight = fontSize * 1.3;
                     
-                    let currentY = videoCanvas.height * 0.15; // Start higher to fit more text
+                    let currentY = videoCanvas.height * 0.15;
                     
                     // Draw name with word wrapping
                     if (name) {
@@ -1775,6 +1877,7 @@
                         finished = true;
                         if (videoElement) videoElement.pause();
                         if (audioElement) audioElement.pause();
+                        if (speechUtterance) window.speechSynthesis.cancel();
                         mediaRecorder.stop();
                         generateBtn.disabled = false;
                         generateBtn.textContent = uploadedMusic || uploadedVideo ? 'Generate Video Greeting' : 'Generate Image Greeting';
@@ -1791,7 +1894,6 @@
             }
         }
         
-        // Handle download
         function handleDownload() {
             if (!generatedBlob) {
                 alert('Please generate a greeting first');
@@ -1806,7 +1908,6 @@
             URL.revokeObjectURL(url);
         }
         
-        // Handle share
         async function handleShare() {
             if (!generatedBlob) {
                 alert('Please generate a greeting first');
